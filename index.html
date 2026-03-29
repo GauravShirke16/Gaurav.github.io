@@ -3,128 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaurav Shirke | Cybersecurity Engineer</title>
+    <title>CyberVault - Free Cybersecurity Resources</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            text-align: center;
-            padding: 60px 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+        header { background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 60px 20px; text-align: center; }
         h1 { margin: 0; font-size: 2.8em; }
-        h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        section { margin-bottom: 50px; }
-        ul { list-style: none; padding: 0; }
-        li { margin: 12px 0; }
-        .skills { display: flex; flex-wrap: wrap; gap: 10px; }
-        .skill-tag {
-            background: #007bff;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.95em;
+        .container { max-width: 1100px; margin: 30px auto; padding: 20px; }
+        h2 { color: #60a5fa; }
+        .resource-card {
+            background: #1e2937;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        footer {
-            text-align: center;
-            padding: 30px;
-            background: #333;
-            color: white;
-            margin-top: 50px;
+        .download-btn {
+            background: #22c55e;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
         }
-        a { color: #007bff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        footer { text-align: center; padding: 40px; background: #020617; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Gaurav Shirke</h1>
-        <p>Senior Cybersecurity Engineer | Endpoint & Network Security | Microsegmentation</p>
-        <p>
-            <a href="mailto:shirke.gaurav1611@gmail.com" style="color:white;">shirke.gaurav1611@gmail.com</a> | 
-            +91 9619364756 | 
-            <a href="https://linkedin.com/in/YOUR-LINKEDIN-USERNAME" target="_blank" style="color:white;">LinkedIn</a>
-        </p>
+        <h1>CyberVault</h1>
+        <p>Free Cybersecurity Resources by Gaurav Shirke</p>
+        <p>Endpoint Security • Microsegmentation • Netskope • DLP • More</p>
     </header>
 
     <div class="container">
-
-        <section>
-            <h2>Professional Summary</h2>
-            <p>Results-driven Cybersecurity Engineer with 3+ years of hands-on experience in endpoint security, microsegmentation, and compliance. Skilled in deploying EDR/XDR solutions and designing secure architectures. Seeking opportunities in Finland and Europe.</p>
-        </section>
-
-        <section>
-            <h2>Core Skills</h2>
-            <div class="skills">
-                <span class="skill-tag">CrowdStrike Falcon</span>
-                <span class="skill-tag">Cortex XDR</span>
-                <span class="skill-tag">Trellix Endpoint</span>
-                <span class="skill-tag">Guardicore Microsegmentation</span>
-                <span class="skill-tag">DLP & Encryption</span>
-                <span class="skill-tag">SIEM (Splunk & Sentinel)</span>
-                <span class="skill-tag">Vulnerability Management</span>
-                <span class="skill-tag">ISO 27001 & GDPR</span>
-                <span class="skill-tag">PowerShell Automation</span>
-                <span class="skill-tag">Netskope (Learning)</span>
+        <h2>Download Resources</h2>
+        
+        <div class="resource-card">
+            <div>
+                <h3>CrowdStrike Falcon Quick Guide</h3>
+                <p>Installation, Configuration & Best Practices (PDF)</p>
             </div>
-        </section>
+            <a href="https://your-link-to-file.pdf" class="download-btn" download>Download PDF</a>
+        </div>
 
-        <section>
-            <h2>Professional Experience</h2>
-            <h3>Senior Cyber Security Engineer – Essen Vision, Mumbai</h3>
-            <p><strong>Nov 2024 – Present</strong></p>
-            <ul>
-                <li>Designed & implemented Guardicore microsegmentation to reduce lateral movement risk</li>
-                <li>Automated security validation using PowerShell (30% efficiency gain)</li>
-                <li>Supported ISO 27001 and GDPR compliance activities</li>
-            </ul>
+        <div class="resource-card">
+            <div>
+                <h3>Guardicore Microsegmentation Cheat Sheet</h3>
+                <p>Zero Trust Implementation Steps</p>
+            </div>
+            <a href="#" class="download-btn" download>Download</a>
+        </div>
 
-            <h3>Cyber Security Engineer – Essen Vision, Mumbai</h3>
-            <p><strong>Nov 2023 – Nov 2024</strong></p>
-            <ul>
-                <li>Deployed CrowdStrike, Trellix & Cortex XDR across 2000+ endpoints (25% attack surface reduction)</li>
-                <li>Conducted alert triage and incident response</li>
-            </ul>
+        <div class="resource-card">
+            <div>
+                <h3>Netskope Beginner Guide</h3>
+                <p>SWG, CASB, DLP Basics (My Notes)</p>
+            </div>
+            <a href="#" class="download-btn" download>Download</a>
+        </div>
 
-            <h3>Application Security Engineer – Balkrishna Industries Ltd</h3>
-            <p><strong>Sep 2022 – Oct 2023</strong></p>
-            <ul>
-                <li>Performed vulnerability assessments and hardening using OWASP guidelines</li>
-            </ul>
-        </section>
+        <!-- Add more cards as you upload files -->
 
-        <section>
-            <h2>Certifications</h2>
-            <ul>
-                <li>CompTIA Security+ (SY0-701) – 2025</li>
-                <li>CrowdStrike Certified Falcon Administrator – 2024</li>
-                <li>Cortex XDR: Prevention and Deployment – 2024</li>
-                <li>Trellix Endpoint Security – 2023</li>
-                <li>GDPR and Compliance Essentials – 2025</li>
-            </ul>
-        </section>
-
-        <section>
-            <h2>Education</h2>
-            <p>Bachelor of Engineering – Electronics & Telecommunications<br>
-            Atharva College of Engineering, Mumbai University (2022)</p>
-        </section>
-
+        <h2 style="margin-top:50px;">Want to Upload a Resource?</h2>
+        <p>Have a good cybersecurity PDF, tool list, or notes? Send it to me!</p>
+        <p><a href="mailto:shirke.gaurav1611@gmail.com" style="color:#60a5fa;">Email me your file</a> or fill this form (Google Form link)</p>
     </div>
 
     <footer>
-        <p>© 2026 Gaurav Shirke • Built with ❤️ using GitHub Pages</p>
-        <p>Open to relocation and new opportunities in Cybersecurity</p>
+        <p>Built by Gaurav Shirke • Cybersecurity Engineer • Open to opportunities in Finland</p>
+        <p><a href="https://linkedin.com/in/yourprofile" style="color:#60a5fa;">LinkedIn</a></p>
     </footer>
 
 </body>
