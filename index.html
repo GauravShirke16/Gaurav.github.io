@@ -616,6 +616,123 @@
     margin-bottom: 24px;
   }
 
+  /* PROJECTS */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .proj-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.25s, transform 0.25s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .proj-card:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-3px);
+  }
+
+  .proj-top {
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .proj-num {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .proj-status {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .proj-status.planned {
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.3);
+    color: var(--amber);
+  }
+
+  .proj-status.wip {
+    background: rgba(0,229,160,0.1);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+  }
+
+  .proj-status.complete {
+    background: rgba(0,229,160,0.15);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+  }
+
+  .proj-body { padding: 16px 24px 20px; flex: 1; }
+
+  .proj-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .proj-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .proj-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .proj-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+  }
+
+  .proj-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  .proj-footer span { color: var(--muted); }
+
+  .proj-arrow {
+    font-size: 16px;
+    transition: transform 0.2s;
+  }
+
+  .proj-card:hover .proj-arrow { transform: translateX(4px); }
+
   /* FOOTER */
   footer {
     position: relative;
@@ -673,12 +790,13 @@
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">Cyber<span>@</span>Security<span>:~$</span></div>
+  <div class="nav-logo">gs<span>@</span>security<span>:~$</span></div>
   <ul>
     <li><a href="#about">about</a></li>
     <li><a href="#skills">skills</a></li>
     <li><a href="#experience">experience</a></li>
     <li><a href="#certs">certs</a></li>
+    <li><a href="#projects">projects</a></li>
     <li><a href="#contact">contact</a></li>
   </ul>
 </nav>
@@ -693,7 +811,7 @@
       Cyber Security Engineer with 3+ years of experience securing enterprise infrastructure, applications and hybrid environments. Specialised in microsegmentation, endpoint protection, system hardening and incident response.
     </p>
     <div class="hero-ctas">
-      <a href="mailto:shirke.gaurav1611@gmail.com" class="btn-primary">Get in touch</a>
+      <a href="/cdn-cgi/l/email-protection#87f4efeef5ece2a9e0e6f2f5e6f1b6b1b6b6c7e0eae6eeeba9e4e8ea" class="btn-primary">Get in touch</a>
       <a href="#experience" class="btn-ghost">View experience</a>
     </div>
 
@@ -992,21 +1110,165 @@
   </div>
 </section>
 
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header fade-in">
+    <span class="section-tag">06</span>
+    <h2 class="section-title">Projects</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="projects-grid fade-in">
+
+    <!-- Project 1 -->
+    <a href="project-home-lab.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">01 / Home Lab</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Home Security Lab Setup</div>
+        <div class="proj-desc">Built a virtualised attack-and-defend environment using VirtualBox and Kali Linux to simulate real-world network intrusions and practice incident containment safely.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">VirtualBox</span>
+          <span class="proj-tag">Kali Linux</span>
+          <span class="proj-tag">Metasploit</span>
+          <span class="proj-tag">Wireshark</span>
+          <span class="proj-tag">Network Security</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 2 -->
+    <a href="project-splunk-siem.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">02 / SIEM</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Splunk SIEM Dashboard</div>
+        <div class="proj-desc">Configured a Splunk instance to ingest system and network logs, built custom dashboards detecting brute-force attempts, port scans, and anomalous login patterns.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">Splunk</span>
+          <span class="proj-tag">SIEM</span>
+          <span class="proj-tag">Log Analysis</span>
+          <span class="proj-tag">SPL Queries</span>
+          <span class="proj-tag">Threat Detection</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 3 -->
+    <a href="project-phishing-sim.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">03 / Social Engineering</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Phishing Simulation & Awareness Report</div>
+        <div class="proj-desc">Ran a controlled phishing campaign using GoPhish to measure click rates, credential submissions, and awareness gaps — then produced a full remediation report.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">GoPhish</span>
+          <span class="proj-tag">Social Engineering</span>
+          <span class="proj-tag">Awareness Training</span>
+          <span class="proj-tag">Reporting</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 4 -->
+    <a href="project-vuln-scan.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">04 / Vulnerability Mgmt</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Vulnerability Assessment Report</div>
+        <div class="proj-desc">Used OpenVAS / Nessus Essentials to scan test systems, identified CVEs by severity, and produced a professional remediation report with risk scoring and fix timelines.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">OpenVAS</span>
+          <span class="proj-tag">Nessus</span>
+          <span class="proj-tag">CVE Analysis</span>
+          <span class="proj-tag">Risk Scoring</span>
+          <span class="proj-tag">Patch Management</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 5 -->
+    <a href="project-tryhackme.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">05 / Ethical Hacking</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">TryHackMe CTF Write-ups</div>
+        <div class="proj-desc">Completed 20+ TryHackMe rooms covering privilege escalation, web exploitation, network forensics, and OSINT. Documented methodology and lessons learned for each challenge.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">TryHackMe</span>
+          <span class="proj-tag">CTF</span>
+          <span class="proj-tag">Privilege Escalation</span>
+          <span class="proj-tag">Web Exploitation</span>
+          <span class="proj-tag">OSINT</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 6 -->
+    <a href="project-wireshark.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">06 / Network Forensics</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Wireshark Network Traffic Analysis</div>
+        <div class="proj-desc">Captured and analysed live network packets using Wireshark, identified suspicious C2 communication patterns, ARP spoofing attempts, and unencrypted credential transmissions.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">Wireshark</span>
+          <span class="proj-tag">Packet Analysis</span>
+          <span class="proj-tag">Network Forensics</span>
+          <span class="proj-tag">TCP/IP</span>
+          <span class="proj-tag">Threat Hunting</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
 <!-- CONTACT -->
 <section id="contact">
   <div class="section-header fade-in">
-    <span class="section-tag">06</span>
+    <span class="section-tag">07</span>
     <h2 class="section-title">Contact</h2>
     <div class="section-line"></div>
   </div>
 
   <div class="contact-grid fade-in">
     <div class="contact-info">
-      <a href="mailto:shirke.gaurav1611@gmail.com" class="contact-item">
+      <a href="/cdn-cgi/l/email-protection#e89b80819a838dc68f899d9a899ed9ded9d9a88f85898184c68b8785" class="contact-item">
         <div class="contact-icon">@</div>
         <div>
           <div class="contact-label">Email</div>
-          <div class="contact-value">shirke.gaurav1611@gmail.com</div>
+          <div class="contact-value"><span class="__cf_email__" data-cfemail="a5d6cdccd7cec08bc2c4d0d7c4d394939494e5c2c8c4ccc98bc6cac8">[email&#160;protected]</span></div>
         </div>
       </a>
       <a href="tel:+919619364756" class="contact-item">
@@ -1016,7 +1278,7 @@
           <div class="contact-value">+91 9619364756</div>
         </div>
       </a>
-      <a href="https://www.linkedin.com/in/gauravshirke" target="_blank" class="contact-item">
+      <a href="https://linkedin.com/in/" target="_blank" class="contact-item">
         <div class="contact-icon">in</div>
         <div>
           <div class="contact-label">LinkedIn</div>
@@ -1037,7 +1299,7 @@
       <p>
         Looking for senior cybersecurity roles in endpoint security, network security, or platform security engineering. Available for full-time positions in Mumbai or remote.
       </p>
-      <a href="mailto:shirke.gaurav1611@gmail.com" class="btn-primary">Send a message</a>
+      <a href="/cdn-cgi/l/email-protection#07746f6e756c62296066727566713631363647606a666e6b2964686a" class="btn-primary">Send a message</a>
     </div>
   </div>
 </section>
@@ -1046,7 +1308,7 @@
   <p>Built by <span>Gaurav Shirke</span> · Senior Cyber Security Engineer · Mumbai, India</p>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // Fade-in on scroll
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
@@ -1068,18 +1330,4 @@
 
   // Smooth active nav
   const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('nav a');
-
-  window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(s => {
-      if (window.scrollY >= s.offsetTop - 80) current = s.id;
-    });
-    navLinks.forEach(a => {
-      a.style.color = a.getAttribute('href') === '#' + current
-        ? 'var(--green)' : '';
-    });
-  });
-</script>
-</body>
-</html>
+  const navLinks = docu

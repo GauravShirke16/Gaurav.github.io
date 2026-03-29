@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TryHackMe CTF Write-ups — Gaurav Shirke</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080c0f;--bg2:#0d1318;--bg3:#111920;--green:#00e5a0;--green-dim:#00e5a022;--green-mid:#00e5a055;--amber:#f5a623;--red:#ff4757;--text:#c8d8e4;--muted:#5a7080;--border:#1a2a35;--mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+  body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:rgba(8,12,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+  .nav-logo{font-family:var(--mono);font-size:13px;color:var(--green);letter-spacing:0.05em;text-decoration:none;}
+  .nav-logo span{color:var(--muted);}
+  .nav-back{font-size:12px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+  .nav-back:hover{color:var(--green);}
+  .page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:96px 40px 80px;}
+  .proj-crumb{font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;}
+  .proj-crumb a{color:var(--green);text-decoration:none;}
+  .proj-hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);padding:5px 14px;border-radius:2px;margin-bottom:20px;}
+  h1{font-family:var(--sans);font-size:clamp(28px,5vw,52px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:16px;}
+  h1 em{font-style:normal;color:var(--green);}
+  .proj-meta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:40px;}
+  .meta-pill{font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+  .meta-pill.green{border-color:var(--green-mid);color:var(--green);background:var(--green-dim);}
+  .meta-pill.amber{border-color:rgba(245,166,35,0.3);color:var(--amber);background:rgba(245,166,35,0.08);}
+  .section-block{margin-bottom:40px;}
+  .block-label{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .block-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  p{font-size:14px;color:var(--text);opacity:0.9;margin-bottom:12px;}
+  .status-banner{background:var(--green-dim);border:1px solid var(--green-mid);border-radius:4px;padding:16px 20px;display:flex;align-items:center;gap:12px;margin-bottom:40px;font-size:13px;color:var(--green);}
+  .status-dot{width:8px;height:8px;background:var(--amber);border-radius:50%;flex-shrink:0;}
+  .rooms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+  .room-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;transition:border-color 0.2s;}
+  .room-card:hover{border-color:var(--green-mid);}
+  .room-name{font-size:14px;color:#fff;font-weight:500;margin-bottom:6px;}
+  .room-category{font-size:11px;color:var(--amber);margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase;}
+  .room-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+  .room-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+  .room-tag{font-size:10px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--muted);}
+  .outcomes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+  .outcome{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;position:relative;overflow:hidden;}
+  .outcome::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);}
+  .outcome-title{font-size:13px;color:#fff;font-weight:500;margin-bottom:4px;}
+  .outcome-desc{font-size:12px;color:var(--muted);}
+  footer{position:relative;z-index:1;text-align:center;padding:24px 40px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
+  footer a{color:var(--green);text-decoration:none;}
+  @media(max-width:600px){.page{padding:80px 20px 60px;}nav{padding:0 20px;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">gs<span>@</span>security<span>:~$</span></a>
+  <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+</nav>
+<div class="page">
+  <div class="proj-crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / TryHackMe</div>
+  <div class="proj-hero-tag">Project 05 · Ethical Hacking</div>
+  <h1>TryHackMe <em>CTF Write-ups</em></h1>
+  <div class="proj-meta">
+    <span class="meta-pill amber">Status: Planned</span>
+    <span class="meta-pill">Capture the Flag</span>
+    <span class="meta-pill">Ethical Hacking</span>
+    <span class="meta-pill">Privilege Escalation</span>
+    <span class="meta-pill green">Platform: TryHackMe.com</span>
+  </div>
+  <div class="status-banner">
+    <div class="status-dot"></div>
+    Write-ups will be added here as each room is completed. Goal: 20+ rooms across all major cybersecurity domains.
+  </div>
+  <div class="section-block">
+    <div class="block-label">Overview</div>
+    <p>TryHackMe is a browser-based cybersecurity training platform where you complete hands-on "rooms" — guided challenges covering everything from Linux basics to advanced penetration testing. Each room I complete will be documented here with a full write-up: the approach, the tools used, the commands run, and lessons learned.</p>
+    <p>Write-ups are valuable because they prove you didn't just click through — they show you understood the technique well enough to explain it. Recruiters and hiring managers actively look for candidate write-ups on GitHub and personal blogs.</p>
+  </div>
+  <div class="section-block">
+    <div class="block-label">Planned rooms (20 target)</div>
+    <div class="rooms-grid">
+      <div class="room-card">
+        <div class="room-category">Fundamentals</div>
+        <div class="room-name">Pre-Security Path</div>
+        <div class="room-desc">Networking basics, Linux fundamentals, web fundamentals — the complete foundation.</div>
+        <div class="room-tags"><span class="room-tag">Linux</span><span class="room-tag">Networking</span><span class="room-tag">HTTP</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-category">Linux</div>
+        <div class="room-name">Linux Privilege Escalation</div>
+        <div class="room-desc">SUID binaries, sudo misconfigurations, cron jobs, writable paths — escalating from low user to root.</div>
+        <div class="room-tags"><span class="room-tag">PrivEsc</span><span class="room-tag">SUID</span><span class="room-tag">Cron</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-category">Web Security</div>
+        <div class="room-name">OWASP Top 10</div>
+        <div class="room-desc">SQLi, XSS, IDOR, broken authentication — the ten most critical web vulnerabilities with hands-on exploits.</div>
+        <div class="room-tags"><span class="room-tag">SQLi</span><span class="room-tag">XSS</span><span class="room-tag">IDOR</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-category">Network Security</div>
+        <div class="room-name">Nmap</div>
+        <div class="room-desc">Complete Nmap mastery: host discovery, port scanning, service detection, OS fingerprinting, NSE scripts.</div>
+        <div class="room-tags"><span class="room-tag">Nmap</span><span class="room-tag">Recon</span><span class="room-tag">Scanning</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-category">Blue Team</div>
+        <div class="room-name">SOC Level 1 Path</div>
+        <div class="room-desc">SIEM fundamentals, Splunk, alert triage, incident response — the full SOC analyst workflow.</div>
+        <div class="room-tags"><span class="room-tag">SIEM</span><span class="room-tag">Splunk</span><span class="room-tag">IR</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-category">Malware</div>
+        <div class="room-name">Malware Analysis</div>
+        <div class="room-desc">Static and dynamic analysis of malware samples in a sandboxed environment. Using tools like PEStudio and Any.run.</div>
+        <div class="room-tags"><span class="room-tag">Malware</span><span class="room-tag">Sandbox</span><span class="room-tag">IOCs</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-block">
+    <div class="block-label">Write-up format for each room</div>
+    <p>Every completed room will have a structured write-up covering: objective, tools used, step-by-step methodology, key commands, flags captured, and one key lesson learned. This format mirrors professional penetration testing reports.</p>
+  </div>
+  <div class="section-block">
+    <div class="block-label">Expected outcomes</div>
+    <div class="outcomes">
+      <div class="outcome"><div class="outcome-title">20+ room completions</div><div class="outcome-desc">Documented across beginner, intermediate, and advanced difficulty</div></div>
+      <div class="outcome"><div class="outcome-title">TryHackMe rank</div><div class="outcome-desc">Target: Top 5% global ranking — visible on the portfolio</div></div>
+      <div class="outcome"><div class="outcome-title">Published write-ups</div><div class="outcome-desc">Each room write-up published on this portfolio page and linked on LinkedIn</div></div>
+      <div class="outcome"><div class="outcome-title">Skill coverage map</div><div class="outcome-desc">Visual map showing domains covered: network, web, forensics, cloud, AD</div></div>
+    </div>
+  </div>
+</div>
+<footer><a href="index.html">← Gaurav Shirke Portfolio</a></footer>
+</body>
+</html>
