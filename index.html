@@ -1,278 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gaurav Shirke — Cyber Security Engineer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- ADD THIS INSIDE <head> AFTER YOUR STYLE -->
+
 <style>
-  :root {
-    --bg: #080c0f;
-    --bg2: #0d1318;
-    --bg3: #111920;
-    --green: #00e5a0;
-    --green-dim: #00e5a022;
-    --green-mid: #00e5a055;
-    --amber: #f5a623;
-    --red: #ff4757;
-    --text: #c8d8e4;
-    --muted: #5a7080;
-    --border: #1a2a35;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Syne', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    line-height: 1.7;
-    overflow-x: hidden;
-    position: relative;
-  }
 
-  /* === SMOOTHER MOVING CYBER DRAGON === */
-  .dragon-bg {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: -1;
-    opacity: 0.16;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .dragon {
-    position: absolute;
-    width: 460px;
-    height: 320px;
-    background: url('data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 460 320%27><defs><linearGradient id=%27glow%27 x1=%270%27 y1=%270%27 x2=%27100%27 y2=%27100%27><stop offset=%270%27 stop-color=%27%2300e5a0%27/><stop offset=%27100%27 stop-color=%27%2300e5a0%27 stop-opacity=%270.25%27/></linearGradient></defs><path d=%27M70 170 Q130 90 200 140 Q260 75 330 135 Q400 105 425 175 Q380 245 290 215 Q220 275 150 215 Q100 255 70 170%27 fill=%27none%27 stroke=%27url(%23glow)%27 stroke-width=%274.5%27 stroke-opacity=%270.75%27 stroke-linejoin=%27round%27/><circle cx=%27235%27 cy=%27145%27 r=%2730%27 fill=%27%2300e5a0%27 fill-opacity=%270.18%27/><path d=%27M205 125 Q235 85 275 120%27 fill=%27none%27 stroke=%27%2300e5a0%27 stroke-width=%274%27 stroke-opacity=%270.85%27/><circle cx=%27195%27 cy=%27140%27 r=%277%27 fill=%27%2300e5a0%27/><circle cx=%27270%27 cy=%27145%27 r=%275%27 fill=%27%2300e5a0%27/></svg>') no-repeat center;
-    filter: drop-shadow(0 0 60px #00e5a0) drop-shadow(0 0 25px #00e5a0);
-    animation: flyDragon 70s linear infinite;
-  }
-  @keyframes flyDragon {
-    0%   { transform: translate(-600px, 120px) rotate(-8deg); }
-    25%  { transform: translate(200px, 60px) rotate(-4deg); }
-    50%  { transform: translate(600px, 140px) rotate(3deg); }
-    75%  { transform: translate(950px, 80px) rotate(-2deg); }
-    100% { transform: translate(1600px, -60px) rotate(8deg); }
-  }
-  .dragon-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 30% 40%, rgba(0,229,160,0.09) 0%, transparent 55%),
-                radial-gradient(circle at 75% 65%, rgba(0,229,160,0.07) 0%, transparent 65%);
-    animation: dragonGlow 35s ease-in-out infinite alternate;
-  }
-  @keyframes dragonGlow {
-    0% { opacity: 0.75; }
-    100% { opacity: 1; }
-  }
+/* ====== SMOOTH CALM BACKGROUND ====== */
+body {
+  background: linear-gradient(270deg, #080c0f, #0d1318, #111920);
+  background-size: 600% 600%;
+  animation: gradientShift 20s ease infinite;
+}
 
-  /* Scanline + Grid */
-  body::before, body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-  body::before {
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-    z-index: 9999;
-  }
-  body::after {
-    background-image: linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
-    background-size: 48px 48px;
-  }
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  /* NAV */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 40px; height: 56px;
-    background: rgba(8,12,15,0.92); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-logo { font-family: var(--mono); font-size: 13px; color: var(--green); letter-spacing: 0.05em; }
-  .nav-logo span { color: var(--muted); }
-  nav ul { display: flex; gap: 32px; list-style: none; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; }
-  nav a:hover { color: var(--green); }
+/* Floating particles */
+body::after {
+  content: "";
+  position: fixed;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0,229,160,0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: floatParticles 60s linear infinite;
+  z-index: 0;
+}
 
-  /* HERO & SECTIONS (same as before) */
-  #about { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; padding: 100px 40px 60px; max-width: 1100px; margin: 0 auto; }
-  .hero-inner { max-width: 740px; }
-  .hero-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); border: 1px solid var(--green-mid); background: var(--green-dim); padding: 5px 14px; border-radius: 2px; margin-bottom: 28px; }
-  .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-  .hero-name { font-family: var(--sans); font-size: clamp(44px, 7vw, 84px); font-weight: 800; line-height: 1.0; color: #fff; letter-spacing: -0.02em; margin-bottom: 8px; }
-  .hero-name em { font-style: normal; color: var(--green); }
-  .hero-title { font-family: var(--mono); font-size: 15px; color: var(--muted); margin-bottom: 28px; letter-spacing: 0.04em; }
-  .hero-title span { color: var(--amber); }
-  .hero-desc { font-size: 14px; color: var(--text); max-width: 540px; line-height: 1.8; margin-bottom: 40px; opacity: 0.85; }
-  .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
-  .btn-primary, .btn-ghost { transition: all 0.2s; }
-  .btn-primary { display: inline-block; padding: 12px 28px; background: var(--green); color: #000; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-decoration: none; border-radius: 2px; }
-  .btn-primary:hover { background: #fff; transform: translateY(-1px); }
-  .btn-ghost { display: inline-block; padding: 12px 28px; border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em; text-decoration: none; border-radius: 2px; }
-  .btn-ghost:hover { border-color: var(--green); color: var(--green); }
+@keyframes floatParticles {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-200px); }
+}
 
-  /* SKILLS - INTERACTIVE HOVER */
-  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .skill-group { background: var(--bg2); padding: 24px; }
-  .skill-group-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  .skill-group-title::before { content: '//'; color: var(--muted); }
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-  .skill-tag {
-    font-size: 12px;
-    padding: 6px 14px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--text);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    position: relative;
-  }
-  .skill-tag:hover {
-    transform: scale(1.08);
-    border-color: var(--green);
-    color: #000;
-    background: var(--green);
-    box-shadow: 0 0 25px var(--green-mid),
-                0 0 40px var(--green);
-  }
-  .skill-tag.highlight { border-color: var(--green-mid); background: var(--green-dim); color: var(--green); }
+/* ====== FIRE DRAGON ICON ====== */
+.dragon {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
 
-  /* Rest of your styles (experience, certs, contact, footer) */
-  section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
-  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 48px; }
-  .section-tag { font-size: 11px; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; }
-  .section-title { font-family: var(--sans); font-size: 32px; font-weight: 700; color: #fff; }
-  .section-line { flex: 1; height: 1px; background: var(--border); }
+/* simple dragon flame effect */
+.dragon::before {
+  content: "🐉";
+  font-size: 18px;
+  filter: drop-shadow(0 0 6px #ff4500);
+  animation: fireMove 0.8s infinite alternate;
+}
 
-  .exp-list, .cert-grid, .achieve-grid, .contact-grid { /* same as previous versions */ }
-  /* (I kept them exactly as before for brevity - they are unchanged) */
+@keyframes fireMove {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-2px) scale(1.1); }
+}
 
-  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .fade-in.visible { opacity: 1; transform: translateY(0); }
+/* SHOW DRAGON ON HOVER */
+.btn-primary,
+.btn-ghost,
+.contact-item,
+.exp-card {
+  position: relative;
+  overflow: hidden;
+}
 
-  @media (max-width: 700px) {
-    nav { padding: 0 20px; }
-    nav ul { gap: 16px; }
-    #about, section { padding-left: 20px; padding-right: 20px; }
-    .hero-name { font-size: 40px; }
-  }
+.btn-primary:hover .dragon,
+.btn-ghost:hover .dragon,
+.contact-item:hover .dragon,
+.exp-card:hover .dragon {
+  opacity: 1;
+  transform: translateX(6px);
+}
+
+/* OPTIONAL: glow effect */
+.btn-primary:hover,
+.contact-item:hover,
+.exp-card:hover {
+  box-shadow: 0 0 12px rgba(255, 100, 0, 0.25);
+}
+
 </style>
-</head>
-<body>
-
-  <!-- Dragon Background -->
-  <div class="dragon-bg">
-    <div class="dragon" style="top: 15%; animation-delay: 0s;"></div>
-    <div class="dragon" style="top: 42%; animation-delay: -22s; transform: scale(0.82);"></div>
-    <div class="dragon" style="top: 68%; animation-delay: -48s; transform: scale(0.68);"></div>
-  </div>
-
-  <!-- NAV -->
-  <nav>
-    <div class="nav-logo">gs<span>@</span>security<span>:~$</span></div>
-    <ul>
-      <li><a href="#about">about</a></li>
-      <li><a href="#skills">skills</a></li>
-      <li><a href="#experience">experience</a></li>
-      <li><a href="#certs">certs</a></li>
-      <li><a href="#contact">contact</a></li>
-    </ul>
-  </nav>
-
-  <!-- HERO -->
-  <section id="about">
-    <div class="hero-inner">
-      <div class="hero-tag">Available for senior roles</div>
-      <h1 class="hero-name">Gaurav<br><em>Shirke</em></h1>
-      <p class="hero-title">Senior Cyber Security Engineer &nbsp;/&nbsp; <span>Mumbai, India</span><span class="cursor"></span></p>
-      <p class="hero-desc">
-        Cyber Security Engineer with 3+ years of experience securing enterprise infrastructure, applications and hybrid environments. Specialised in microsegmentation, endpoint protection, system hardening and incident response.
-      </p>
-      <div class="hero-ctas">
-        <a href="mailto:shirke.gaurav1611@gmail.com" class="btn-primary">Get in touch</a>
-        <a href="#experience" class="btn-ghost">View experience</a>
-      </div>
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-num">3+</div><div class="stat-label">Years experience</div></div>
-        <div class="stat"><div class="stat-num">2K+</div><div class="stat-label">Endpoints secured</div></div>
-        <div class="stat"><div class="stat-num">25%</div><div class="stat-label">Attack surface reduced</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SKILLS (with interactive hover) -->
-  <section id="skills">
-    <div class="section-header fade-in">
-      <span class="section-tag">02</span>
-      <h2 class="section-title">Skills</h2>
-      <div class="section-line"></div>
-    </div>
-    <div class="skills-grid fade-in">
-      <div class="skill-group">
-        <div class="skill-group-title">Security Engineering</div>
-        <div class="skill-tags">
-          <span class="skill-tag highlight" title="Micro-segmentation platform for Zero Trust">Guardicore</span>
-          <span class="skill-tag highlight" title="Endpoint Detection & Response">EDR / XDR</span>
-          <span class="skill-tag" title="Network segmentation & isolation">Microsegmentation</span>
-          <span class="skill-tag" title="Incident investigation & containment">Incident Response</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <div class="skill-group-title">Security Tools</div>
-        <div class="skill-tags">
-          <span class="skill-tag highlight" title="Next-gen EDR platform">CrowdStrike</span>
-          <span class="skill-tag highlight" title="Palo Alto endpoint protection">Cortex XDR</span>
-          <span class="skill-tag highlight" title="Cloud & web security">Zscaler</span>
-          <span class="skill-tag" title="Endpoint security suite">Trellix</span>
-          <span class="skill-tag" title="Data Loss Prevention">DLP</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <div class="skill-group-title">Systems & Platforms</div>
-        <div class="skill-tags">
-          <span class="skill-tag highlight" title="Red Hat Enterprise Linux">Linux (RHEL, CentOS)</span>
-          <span class="skill-tag" title="Windows Server management">Windows Server</span>
-          <span class="skill-tag" title="Core networking protocols">TCP/IP</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <div class="skill-group-title">Monitoring & Scripting</div>
-        <div class="skill-tags">
-          <span class="skill-tag highlight" title="SIEM & log analysis">Splunk</span>
-          <span class="skill-tag" title="Microsoft Sentinel">Sentinel</span>
-          <span class="skill-tag" title="Automation scripting">PowerShell / Bash</span>
-        </div>
-      </div>
-      <div class="skill-group">
-        <div class="skill-group-title">Standards & Compliance</div>
-        <div class="skill-tags">
-          <span class="skill-tag" title="Information Security Management">ISO 27001</span>
-          <span class="skill-tag" title="Data privacy regulation">GDPR</span>
-          <span class="skill-tag" title="Web application security">OWASP</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- EXPERIENCE, CERTS, ACHIEVEMENTS, CONTACT sections remain exactly as your original design -->
-  <!-- (They are unchanged - you already have them in your previous file) -->
-
-  <footer>
-    <p>Built by <span>Gaurav Shirke</span> · Senior Cyber Security Engineer · Mumbai, India</p>
-  </footer>
-
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) setTimeout(() => entry.target.classList.add('visible'), i * 80);
-      });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-  </script>
-</body>
-</html>
