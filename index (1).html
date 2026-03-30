@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaurav Shirke — Cyber Security Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c0f;
+    --bg2: #0d1318;
+    --bg3: #111920;
+    --green: #00e5a0;
+    --green-dim: #00e5a022;
+    --green-mid: #00e5a055;
+    --amber: #f5a623;
+    --red: #ff4757;
+    --text: #c8d8e4;
+    --muted: #5a7080;
+    --border: #1a2a35;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 56px;
+    background: rgba(8,12,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+  }
+
+  .nav-logo span { color: var(--muted); }
+
+  nav ul {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: var(--green); }
+
+  /* HERO */
+  #hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 100px 40px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .hero-inner { max-width: 740px; }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid var(--green-mid);
+    background: var(--green-dim);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .hero-name {
+    font-family: var(--sans);
+    font-size: clamp(44px, 7vw, 84px);
+    font-weight: 800;
+    line-height: 1.0;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .hero-name em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  .hero-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  .hero-title span { color: var(--amber); }
+
+  .hero-desc {
+    font-size: 14px;
+    color: var(--text);
+    max-width: 540px;
+    line-height: 1.8;
+    margin-bottom: 40px;
+    opacity: 0.85;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--green);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover { background: #fff; transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-block;
+    padding: 12px 28px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--green); color: var(--green); }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-top: 60px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--bg2);
+    padding: 20px 24px;
+  }
+
+  .stat-num {
+    font-family: var(--sans);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .section-tag {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--sans);
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .skill-group {
+    background: var(--bg2);
+    padding: 24px;
+  }
+
+  .skill-group-title {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .skill-group-title::before {
+    content: '//';
+    color: var(--muted);
+  }
+
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .skill-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .skill-tag:hover {
+    border-color: var(--green-mid);
+    color: var(--green);
+    background: var(--green-dim);
+  }
+
+  .skill-tag.highlight {
+    border-color: var(--green-mid);
+    color: var(--green);
+    background: var(--green-dim);
+  }
+
+  /* EXPERIENCE */
+  .exp-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .exp-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .exp-card:hover { border-color: var(--green-mid); }
+
+  .exp-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 16px;
+    padding: 24px 28px 20px;
+    cursor: pointer;
+  }
+
+  .exp-role {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .exp-company {
+    font-size: 13px;
+    color: var(--green);
+  }
+
+  .exp-acting {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  .exp-date {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .exp-body {
+    padding: 0 28px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .exp-bullets {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .exp-bullets li {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    opacity: 0.9;
+  }
+
+  .exp-bullets li::before {
+    content: '▸';
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .exp-impact {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .impact-badge {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    background: var(--green-dim);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+    letter-spacing: 0.04em;
+  }
+
+  /* CERTIFICATIONS */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .cert-card {
+    background: var(--bg2);
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: background 0.2s;
+  }
+
+  .cert-card:hover { background: var(--bg3); }
+
+  .cert-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--green-dim);
+    border: 1px solid var(--green-mid);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--green);
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .cert-name {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .cert-issuer {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .cert-date {
+    font-size: 11px;
+    color: var(--amber);
+    margin-top: 2px;
+  }
+
+  /* ACHIEVEMENTS */
+  .achieve-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .achieve-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .achieve-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--green);
+  }
+
+  .achieve-card:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-2px);
+  }
+
+  .achieve-year {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .achieve-title {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .achieve-org {
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  /* CONTACT */
+  #contact {
+    border-top: 1px solid var(--border);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .contact-info { display: flex; flex-direction: column; gap: 16px; }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .contact-item:hover {
+    border-color: var(--green-mid);
+    color: var(--green);
+  }
+
+  .contact-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--green-dim);
+    border: 1px solid var(--green-mid);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .contact-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .contact-value { font-size: 13px; }
+
+  .contact-cta {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+  }
+
+  .contact-cta h3 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .contact-cta p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  /* PROJECTS */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .proj-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.25s, transform 0.25s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .proj-card:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-3px);
+  }
+
+  .proj-top {
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .proj-num {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .proj-status {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .proj-status.planned {
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.3);
+    color: var(--amber);
+  }
+
+  .proj-status.wip {
+    background: rgba(0,229,160,0.1);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+  }
+
+  .proj-status.complete {
+    background: rgba(0,229,160,0.15);
+    border: 1px solid var(--green-mid);
+    color: var(--green);
+  }
+
+  .proj-body { padding: 16px 24px 20px; flex: 1; }
+
+  .proj-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .proj-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .proj-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .proj-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+  }
+
+  .proj-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  .proj-footer span { color: var(--muted); }
+
+  .proj-arrow {
+    font-size: 16px;
+    transition: transform 0.2s;
+  }
+
+  .proj-card:hover .proj-arrow { transform: translateX(4px); }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 24px 40px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  footer span { color: var(--green); }
+
+  /* ANIMATIONS */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Typing cursor */
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--green);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    nav { padding: 0 20px; }
+    nav ul { gap: 16px; }
+    #hero, section { padding-left: 20px; padding-right: 20px; }
+    .hero-stats { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .hero-name { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">gs<span>@</span>security<span>:~$</span></div>
+  <ul>
+    <li><a href="#about">about</a></li>
+    <li><a href="#skills">skills</a></li>
+    <li><a href="#experience">experience</a></li>
+    <li><a href="#certs">certs</a></li>
+    <li><a href="#projects">projects</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="about">
+  <div class="hero-inner">
+    <div class="hero-tag">Available for senior roles</div>
+    <h1 class="hero-name">Gaurav<br><em>Shirke</em></h1>
+    <p class="hero-title">Senior Cyber Security Engineer &nbsp;/&nbsp; <span>Mumbai, India</span><span class="cursor"></span></p>
+    <p class="hero-desc">
+      Cyber Security Engineer with 3+ years of experience securing enterprise infrastructure, applications and hybrid environments. Specialised in microsegmentation, endpoint protection, system hardening and incident response.
+    </p>
+    <div class="hero-ctas">
+      <a href="/cdn-cgi/l/email-protection#87f4efeef5ece2a9e0e6f2f5e6f1b6b1b6b6c7e0eae6eeeba9e4e8ea" class="btn-primary">Get in touch</a>
+      <a href="#experience" class="btn-ghost">View experience</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">3+</div>
+        <div class="stat-label">Years experience</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">2K+</div>
+        <div class="stat-label">Endpoints secured</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">25%</div>
+        <div class="stat-label">Attack surface reduced</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-header fade-in">
+    <span class="section-tag">02</span>
+    <h2 class="section-title">Skills</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="skills-grid fade-in">
+    <div class="skill-group">
+      <div class="skill-group-title">Security Engineering</div>
+      <div class="skill-tags">
+        <span class="skill-tag highlight">Guardicore</span>
+        <span class="skill-tag highlight">EDR / XDR</span>
+        <span class="skill-tag">Microsegmentation</span>
+        <span class="skill-tag">Incident Response</span>
+        <span class="skill-tag">Threat Containment</span>
+        <span class="skill-tag">Access Control</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">Security Tools</div>
+      <div class="skill-tags">
+        <span class="skill-tag highlight">CrowdStrike</span>
+        <span class="skill-tag highlight">Cortex XDR</span>
+        <span class="skill-tag highlight">Zscaler</span>
+        <span class="skill-tag">Trellix</span>
+        <span class="skill-tag">Skyhigh</span>
+        <span class="skill-tag">DLP</span>
+        <span class="skill-tag">Drive Encryption</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">Systems & Platforms</div>
+      <div class="skill-tags">
+        <span class="skill-tag highlight">Linux (RHEL, CentOS)</span>
+        <span class="skill-tag">Windows Server</span>
+        <span class="skill-tag">TCP/IP</span>
+        <span class="skill-tag">Firewall Policies</span>
+        <span class="skill-tag">Networking</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">Monitoring & Scripting</div>
+      <div class="skill-tags">
+        <span class="skill-tag highlight">Splunk</span>
+        <span class="skill-tag">Sentinel</span>
+        <span class="skill-tag">PowerShell</span>
+        <span class="skill-tag">Bash</span>
+        <span class="skill-tag">Log Analysis</span>
+        <span class="skill-tag">SIEM</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">Standards & Compliance</div>
+      <div class="skill-tags">
+        <span class="skill-tag">ISO 27001</span>
+        <span class="skill-tag">GDPR</span>
+        <span class="skill-tag">OWASP</span>
+        <span class="skill-tag">Secure Config Baselines</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">Development Security</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Secure Coding</span>
+        <span class="skill-tag">Software Integrity</span>
+        <span class="skill-tag">Encryption</span>
+        <span class="skill-tag">Key Management</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-header fade-in">
+    <span class="section-tag">03</span>
+    <h2 class="section-title">Experience</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="exp-list">
+
+    <!-- Job 1 -->
+    <div class="exp-card fade-in">
+      <div class="exp-header">
+        <div>
+          <div class="exp-role">Senior Cyber Security Engineer</div>
+          <div class="exp-company">Essen Vision — Mumbai, India</div>
+          <div class="exp-acting">Acting Role: Platform Security Engineer</div>
+        </div>
+        <div class="exp-date">Nov 2024 – Present</div>
+      </div>
+      <div class="exp-body">
+        <ul class="exp-bullets">
+          <li>Designed and implemented micro-segmentation architecture using Guardicore to isolate critical workloads and restrict east-west traffic across hybrid infrastructure</li>
+          <li>Defined network security zones and firewall access policies protecting application and database tiers</li>
+          <li>Led incident root-cause investigations and implemented preventive security controls to improve system resilience</li>
+          <li>Automated security validation and operational health checks using PowerShell, improving response efficiency by 30%</li>
+          <li>Collaborated with infrastructure and application teams to establish secure configuration baselines across servers</li>
+          <li>Supported compliance readiness and control documentation aligned with ISO 27001 and GDPR frameworks</li>
+        </ul>
+        <div class="exp-impact">
+          <span class="impact-badge">+30% response efficiency</span>
+          <span class="impact-badge">ISO 27001 aligned</span>
+          <span class="impact-badge">Guardicore</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job 2 -->
+    <div class="exp-card fade-in">
+      <div class="exp-header">
+        <div>
+          <div class="exp-role">Cyber Security Engineer</div>
+          <div class="exp-company">Essen Vision — Mumbai, India</div>
+          <div class="exp-acting">Acting Role: Implementation & Monitoring</div>
+        </div>
+        <div class="exp-date">Nov 2023 – Nov 2024</div>
+      </div>
+      <div class="exp-body">
+        <ul class="exp-bullets">
+          <li>Implemented and configured endpoint protection across 2,000+ enterprise systems using EDR/XDR platforms, reducing attack surface by 25%</li>
+          <li>Monitored security alerts and telemetry to detect suspicious activity and support incident containment</li>
+          <li>Deployed encryption and data protection controls across endpoints and storage systems</li>
+          <li>Assisted in implementation of access control and segmentation policies for internal applications</li>
+          <li>Performed system hardening and vulnerability remediation in coordination with system administrators</li>
+          <li>Supported security operations by validating alerts, performing initial triage and escalating critical threats</li>
+        </ul>
+        <div class="exp-impact">
+          <span class="impact-badge">2,000+ endpoints</span>
+          <span class="impact-badge">-25% attack surface</span>
+          <span class="impact-badge">EDR/XDR</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job 3 -->
+    <div class="exp-card fade-in">
+      <div class="exp-header">
+        <div>
+          <div class="exp-role">Application Security Engineer</div>
+          <div class="exp-company">Balkrishna Industries Ltd — Mumbai, India</div>
+          <div class="exp-acting">Acting Role: Software Integrity & Security</div>
+        </div>
+        <div class="exp-date">Sep 2022 – Oct 2023</div>
+      </div>
+      <div class="exp-body">
+        <ul class="exp-bullets">
+          <li>Hardened backend application servers using OWASP-aligned security baselines to strengthen software integrity</li>
+          <li>Conducted vulnerability assessments and eliminated 30+ critical security flaws across applications</li>
+          <li>Introduced secure coding practices reducing application risk exposure by 20%</li>
+          <li>Reviewed authentication and access control mechanisms to improve application security posture</li>
+        </ul>
+        <div class="exp-impact">
+          <span class="impact-badge">30+ flaws eliminated</span>
+          <span class="impact-badge">-20% risk exposure</span>
+          <span class="impact-badge">OWASP</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certs">
+  <div class="section-header fade-in">
+    <span class="section-tag">04</span>
+    <h2 class="section-title">Certifications</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="cert-grid fade-in">
+    <div class="cert-card">
+      <div class="cert-icon">S+</div>
+      <div>
+        <div class="cert-name">CompTIA Security+ (SY0-701)</div>
+        <div class="cert-issuer">CompTIA</div>
+        <div class="cert-date">Nov 2025</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">CS</div>
+      <div>
+        <div class="cert-name">CrowdStrike Certified Falcon Administrator</div>
+        <div class="cert-issuer">CrowdStrike</div>
+        <div class="cert-date">Sep 2024</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">PA</div>
+      <div>
+        <div class="cert-name">Cortex XDR: Prevention and Deployment (EDU-260)</div>
+        <div class="cert-issuer">Palo Alto Networks</div>
+        <div class="cert-date">Jan 2024</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">TX</div>
+      <div>
+        <div class="cert-name">Trellix Endpoint Security</div>
+        <div class="cert-issuer">Trellix</div>
+        <div class="cert-date">Sep 2023</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">GP</div>
+      <div>
+        <div class="cert-name">GDPR and Compliance Essentials</div>
+        <div class="cert-issuer">InfosecTrain</div>
+        <div class="cert-date">Jul 2025</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">ES</div>
+      <div>
+        <div class="cert-name">EasiShare Technical Training</div>
+        <div class="cert-issuer">Inspire-Tech Pte Ltd</div>
+        <div class="cert-date">Oct 2025</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">GC</div>
+      <div>
+        <div class="cert-name">Digital Transformation with Google Cloud</div>
+        <div class="cert-issuer">Coursera</div>
+        <div class="cert-date">Sep 2022</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">YQ</div>
+      <div>
+        <div class="cert-name">YantraQuest National Technology Day</div>
+        <div class="cert-issuer">MyGov & TDB</div>
+        <div class="cert-date">Aug 2025</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements -->
+  <div style="margin-top: 64px;">
+    <div class="section-header fade-in">
+      <span class="section-tag">05</span>
+      <h2 class="section-title">Achievements</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="achieve-grid fade-in">
+      <div class="achieve-card">
+        <div class="achieve-year">2025 · Essen Vision</div>
+        <div class="achieve-title">Implemented microsegmentation reducing lateral movement risk</div>
+        <div class="achieve-org">Platform Security</div>
+      </div>
+      <div class="achieve-card">
+        <div class="achieve-year">2024 · Essen Vision</div>
+        <div class="achieve-title">Awarded Best Security Analyst</div>
+        <div class="achieve-org">Annual Recognition</div>
+      </div>
+      <div class="achieve-card">
+        <div class="achieve-year">2023–2024 · Essen Vision</div>
+        <div class="achieve-title">Reduced attack surface by 25% through endpoint modernisation</div>
+        <div class="achieve-org">Endpoint Security</div>
+      </div>
+      <div class="achieve-card">
+        <div class="achieve-year">2023 · Essen Vision</div>
+        <div class="achieve-title">Improved operational efficiency by 30% through automation</div>
+        <div class="achieve-org">Security Automation</div>
+      </div>
+      <div class="achieve-card">
+        <div class="achieve-year">2022–2023 · Balkrishna Industries</div>
+        <div class="achieve-title">Configured secure application settings — eliminated 30+ critical flaws</div>
+        <div class="achieve-org">Application Security</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header fade-in">
+    <span class="section-tag">06</span>
+    <h2 class="section-title">Projects</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="projects-grid fade-in">
+
+    <!-- Project 1 -->
+    <a href="project-home-lab.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">01 / Home Lab</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Home Security Lab Setup</div>
+        <div class="proj-desc">Built a virtualised attack-and-defend environment using VirtualBox and Kali Linux to simulate real-world network intrusions and practice incident containment safely.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">VirtualBox</span>
+          <span class="proj-tag">Kali Linux</span>
+          <span class="proj-tag">Metasploit</span>
+          <span class="proj-tag">Wireshark</span>
+          <span class="proj-tag">Network Security</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 2 -->
+    <a href="project-splunk-siem.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">02 / SIEM</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Splunk SIEM Dashboard</div>
+        <div class="proj-desc">Configured a Splunk instance to ingest system and network logs, built custom dashboards detecting brute-force attempts, port scans, and anomalous login patterns.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">Splunk</span>
+          <span class="proj-tag">SIEM</span>
+          <span class="proj-tag">Log Analysis</span>
+          <span class="proj-tag">SPL Queries</span>
+          <span class="proj-tag">Threat Detection</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 3 -->
+    <a href="project-phishing-sim.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">03 / Social Engineering</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Phishing Simulation & Awareness Report</div>
+        <div class="proj-desc">Ran a controlled phishing campaign using GoPhish to measure click rates, credential submissions, and awareness gaps — then produced a full remediation report.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">GoPhish</span>
+          <span class="proj-tag">Social Engineering</span>
+          <span class="proj-tag">Awareness Training</span>
+          <span class="proj-tag">Reporting</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 4 -->
+    <a href="project-vuln-scan.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">04 / Vulnerability Mgmt</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Vulnerability Assessment Report</div>
+        <div class="proj-desc">Used OpenVAS / Nessus Essentials to scan test systems, identified CVEs by severity, and produced a professional remediation report with risk scoring and fix timelines.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">OpenVAS</span>
+          <span class="proj-tag">Nessus</span>
+          <span class="proj-tag">CVE Analysis</span>
+          <span class="proj-tag">Risk Scoring</span>
+          <span class="proj-tag">Patch Management</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 5 -->
+    <a href="project-tryhackme.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">05 / Ethical Hacking</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">TryHackMe CTF Write-ups</div>
+        <div class="proj-desc">Completed 20+ TryHackMe rooms covering privilege escalation, web exploitation, network forensics, and OSINT. Documented methodology and lessons learned for each challenge.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">TryHackMe</span>
+          <span class="proj-tag">CTF</span>
+          <span class="proj-tag">Privilege Escalation</span>
+          <span class="proj-tag">Web Exploitation</span>
+          <span class="proj-tag">OSINT</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- Project 6 -->
+    <a href="project-wireshark.html" target="_blank" class="proj-card">
+      <div class="proj-top">
+        <span class="proj-num">06 / Network Forensics</span>
+        <span class="proj-status planned">Planned</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-title">Wireshark Network Traffic Analysis</div>
+        <div class="proj-desc">Captured and analysed live network packets using Wireshark, identified suspicious C2 communication patterns, ARP spoofing attempts, and unencrypted credential transmissions.</div>
+        <div class="proj-tags">
+          <span class="proj-tag">Wireshark</span>
+          <span class="proj-tag">Packet Analysis</span>
+          <span class="proj-tag">Network Forensics</span>
+          <span class="proj-tag">TCP/IP</span>
+          <span class="proj-tag">Threat Hunting</span>
+        </div>
+      </div>
+      <div class="proj-footer">
+        View project details <span class="proj-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-header fade-in">
+    <span class="section-tag">07</span>
+    <h2 class="section-title">Contact</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="contact-grid fade-in">
+    <div class="contact-info">
+      <a href="/cdn-cgi/l/email-protection#e89b80819a838dc68f899d9a899ed9ded9d9a88f85898184c68b8785" class="contact-item">
+        <div class="contact-icon">@</div>
+        <div>
+          <div class="contact-label">Email</div>
+          <div class="contact-value"><span class="__cf_email__" data-cfemail="a5d6cdccd7cec08bc2c4d0d7c4d394939494e5c2c8c4ccc98bc6cac8">[email&#160;protected]</span></div>
+        </div>
+      </a>
+      <a href="tel:+919619364756" class="contact-item">
+        <div class="contact-icon">#</div>
+        <div>
+          <div class="contact-label">Phone</div>
+          <div class="contact-value">+91 9619364756</div>
+        </div>
+      </a>
+      <a href="https://linkedin.com/in/" target="_blank" class="contact-item">
+        <div class="contact-icon">in</div>
+        <div>
+          <div class="contact-label">LinkedIn</div>
+          <div class="contact-value">linkedin.com/in/gaurav-shirke</div>
+        </div>
+      </a>
+      <div class="contact-item" style="cursor: default;">
+        <div class="contact-icon">★</div>
+        <div>
+          <div class="contact-label">Location</div>
+          <div class="contact-value">Mumbai, India</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-cta">
+      <h3>Open to opportunities</h3>
+      <p>
+        Looking for senior cybersecurity roles in endpoint security, network security, or platform security engineering. Available for full-time positions in Mumbai or remote.
+      </p>
+      <a href="/cdn-cgi/l/email-protection#07746f6e756c62296066727566713631363647606a666e6b2964686a" class="btn-primary">Send a message</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built by <span>Gaurav Shirke</span> · Senior Cyber Security Engineer · Mumbai, India</p>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Typing effect for hero tag
+  const heroTag = document.querySelector('.hero-tag');
+  heroTag.style.opacity = '0';
+  setTimeout(() => {
+    heroTag.style.transition = 'opacity 0.4s';
+    heroTag.style.opacity = '1';
+  }, 300);
+
+  // Smooth active nav
+  const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current
+        ? 'var(--green)' : '';
+    });
+  });
+</script>
+</body>
+</html>
