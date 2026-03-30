@@ -1330,4 +1330,18 @@
 
   // Smooth active nav
   const sections = document.querySelectorAll('section[id]');
-  const navLinks = docu
+    const navLinks = document.querySelectorAll('nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current
+        ? 'var(--green)' : '';
+    });
+  });
+</script>
+</body>
+</html>
