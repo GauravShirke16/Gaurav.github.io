@@ -3,130 +3,1111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Splunk SIEM Dashboard — Gaurav Shirke</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Project 02 — Splunk SIEM Dashboard | Gaurav Shirke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#080c0f;--bg2:#0d1318;--bg3:#111920;--green:#00e5a0;--green-dim:#00e5a022;--green-mid:#00e5a055;--amber:#f5a623;--red:#ff4757;--text:#c8d8e4;--muted:#5a7080;--border:#1a2a35;--mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;}
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
-  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
-  body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
-  nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;background:rgba(8,12,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
-  .nav-logo{font-family:var(--mono);font-size:13px;color:var(--green);letter-spacing:0.05em;text-decoration:none;}
-  .nav-logo span{color:var(--muted);}
-  .nav-back{font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:0.06em;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
-  .nav-back:hover{color:var(--green);}
-  .page{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:96px 40px 80px;}
-  .proj-crumb{font-size:11px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;}
-  .proj-crumb a{color:var(--green);text-decoration:none;}
-  .proj-hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);padding:5px 14px;border-radius:2px;margin-bottom:20px;}
-  h1{font-family:var(--sans);font-size:clamp(28px,5vw,52px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:16px;}
-  h1 em{font-style:normal;color:var(--green);}
-  .proj-meta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:40px;}
-  .meta-pill{font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
-  .meta-pill.green{border-color:var(--green-mid);color:var(--green);background:var(--green-dim);}
-  .meta-pill.amber{border-color:rgba(245,166,35,0.3);color:var(--amber);background:rgba(245,166,35,0.08);}
-  .section-block{margin-bottom:40px;}
-  .block-label{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-  .block-label::after{content:'';flex:1;height:1px;background:var(--border);}
-  p{font-size:14px;color:var(--text);opacity:0.9;margin-bottom:12px;}
-  .steps{display:flex;flex-direction:column;gap:2px;}
-  .step{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 24px;display:flex;gap:20px;align-items:flex-start;}
-  .step-num{font-family:var(--sans);font-size:22px;font-weight:800;color:var(--green);opacity:0.4;min-width:32px;line-height:1;}
-  .step-title{font-size:14px;font-weight:500;color:#fff;margin-bottom:4px;}
-  .step-desc{font-size:13px;color:var(--muted);line-height:1.6;}
-  .tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
-  .tool-card{background:var(--bg2);padding:16px 20px;}
-  .tool-name{font-size:13px;color:#fff;font-weight:500;margin-bottom:4px;}
-  .tool-desc{font-size:11px;color:var(--muted);}
-  .outcomes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
-  .outcome{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;position:relative;overflow:hidden;}
-  .outcome::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);}
-  .outcome-title{font-size:13px;color:#fff;font-weight:500;margin-bottom:4px;}
-  .outcome-desc{font-size:12px;color:var(--muted);}
-  .code-block{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 24px;font-family:var(--mono);font-size:12px;color:var(--green);overflow-x:auto;white-space:pre;line-height:1.6;}
-  .code-block .c{color:var(--muted);}
-  .code-block .k{color:var(--amber);}
-  .status-banner{background:var(--green-dim);border:1px solid var(--green-mid);border-radius:4px;padding:16px 20px;display:flex;align-items:center;gap:12px;margin-bottom:40px;font-size:13px;color:var(--green);}
-  .status-dot{width:8px;height:8px;background:var(--amber);border-radius:50%;flex-shrink:0;}
-  footer{position:relative;z-index:1;text-align:center;padding:24px 40px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);letter-spacing:0.06em;}
-  footer a{color:var(--green);text-decoration:none;}
-  @media(max-width:600px){.page{padding:80px 20px 60px;}nav{padding:0 20px;}}
+:root{
+  --black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;
+  --green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;--cyan2:#7fffd4;
+  --amber:#f5a623;--red:#ff3b5c;--text:#b8cdd8;--muted:#4a6572;--border:#112030;
+  --glow:0 0 20px rgba(0,229,160,0.4),0 0 40px rgba(0,229,160,0.2);
+  --font-d:'Orbitron',sans-serif;
+  --font-m:'Share Tech Mono',monospace;
+  --font-b:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--font-b);font-size:16px;line-height:1.7;overflow-x:hidden;cursor:none;}
+
+/* CURSOR — exact from index.html */
+.cursor{width:12px;height:12px;background:var(--green);border-radius:50%;position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s,background .2s;}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(0,229,160,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+
+/* BACKGROUND — exact from index.html */
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.045;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:0;opacity:.7;pointer-events:none;}
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.scanlines{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;}
+.vignette{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.65) 100%);pointer-events:none;}
+
+/* PROGRESS */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));z-index:2000;transition:width .1s;width:0%;}
+
+/* NAV — exact from index.html */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(5,13,16,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,160,.1);}
+.nav-logo{font-family:var(--font-m);font-size:14px;color:var(--green);text-decoration:none;}
+.nav-logo .at{color:var(--cyan);}
+.nav-logo .pr{color:var(--muted);}
+.nav-back{font-family:var(--font-m);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .3s;position:relative;}
+.nav-back::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--green);transform:scaleX(0);transition:transform .3s;}
+.nav-back:hover{color:var(--green);}
+.nav-back:hover::after{transform:scaleX(1);}
+.nav-st{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.sdot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.6);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+
+/* LAYOUT */
+.container{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:80px 48px 100px;}
+
+/* HEADER */
+.crumb{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.crumb a{color:var(--green);text-decoration:none;}
+.ptag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--amber);border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.07);padding:5px 14px;border-radius:2px;margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;}
+h1{font-family:var(--font-d);font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:16px;letter-spacing:.02em;}
+h1 em{font-style:normal;color:var(--green);}
+.pmeta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.pill{font-family:var(--font-m);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+.pill.g{border-color:rgba(0,229,160,.3);color:var(--green);background:rgba(0,229,160,.07);}
+.pill.a{border-color:rgba(245,166,35,.3);color:var(--amber);background:rgba(245,166,35,.07);}
+.sbanner{display:flex;align-items:flex-start;gap:14px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px 22px;margin-bottom:48px;font-size:14px;color:var(--text);}
+.sbdot{width:9px;height:9px;background:var(--amber);border-radius:50%;flex-shrink:0;margin-top:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:56px;}
+.toc-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
+.toc ol{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:tc;}
+.toc li{counter-increment:tc;display:flex;align-items:baseline;gap:10px;font-size:14px;}
+.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--font-m);font-size:11px;color:var(--muted);flex-shrink:0;}
+.toc a{color:var(--text);text-decoration:none;transition:color .2s;}
+.toc a:hover{color:var(--green);}
+
+/* SECTIONS */
+.sec{margin-bottom:64px;}
+.anc{display:block;height:80px;margin-top:-80px;visibility:hidden;}
+.slabel{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.slabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,160,.3),transparent);}
+h2{font-family:var(--font-d);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
+h3{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
+h4{font-family:var(--font-m);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
+p{font-size:15px;color:var(--text);opacity:.9;margin-bottom:14px;}
+strong{color:#fff;font-weight:600;}
+
+/* CODE */
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 22px;overflow-x:auto;margin:18px 0;}
+code{font-family:var(--font-m);font-size:12.5px;color:var(--green);line-height:1.65;}
+pre code{color:var(--green);}
+p code,li code,.sd code{font-family:var(--font-m);font-size:12px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:2px 6px;color:var(--green);}
+.cm{color:var(--muted);}
+.ky{color:var(--cyan);}
+.pi{color:var(--amber);}
+
+/* CALLOUTS */
+.exp{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.exp-lbl{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.warn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.warn-lbl{font-family:var(--font-m);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tip{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.tip-lbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+
+/* TABLES */
+.tw{overflow-x:auto;margin:20px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:var(--font-m);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
+td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,229,160,.025);}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:2px;margin:18px 0;}
+.step{display:flex;gap:18px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:18px 22px;transition:border-color .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden;}
+.step::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green),var(--cyan));opacity:0;transition:opacity .3s;}
+.step:hover{border-color:rgba(0,229,160,.3);transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,0,0,.35),0 0 16px rgba(0,229,160,.06);}
+.step:hover::before{opacity:1;}
+.sn{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
+.sb{flex:1;}
+.st2{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px;}
+.sd{font-size:14px;color:var(--muted);line-height:1.65;}
+.sd code{font-family:var(--font-m);font-size:11px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:1px 5px;color:var(--green);}
+
+/* TOOL GRID */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.tc{background:var(--bg);padding:14px 16px;transition:background .3s;}
+.tc:hover{background:var(--bg2);}
+.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
+.tcd{font-size:11px;color:var(--muted);font-family:var(--font-m);}
+
+/* OUTCOME GRID */
+.outg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;}
+.outc{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:20px;position:relative;overflow:hidden;transition:all .3s;}
+.outc::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);}
+.outc:hover{border-color:rgba(0,229,160,.25);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3);}
+.out-title{font-size:14px;color:#fff;font-weight:600;margin-bottom:5px;}
+.out-desc{font-size:12px;color:var(--muted);font-family:var(--font-m);line-height:1.5;}
+
+/* SCREENSHOT PLACEHOLDER */
+.ss-wrap{margin:24px 0;}
+.ss-ph{
+  background:var(--bg2);
+  border:1px dashed rgba(0,229,160,.25);
+  border-radius:4px;
+  padding:0;
+  overflow:hidden;
+  position:relative;
+}
+.ss-ph-inner{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:220px;
+  gap:14px;
+  background:linear-gradient(135deg,rgba(0,229,160,.03) 0%,transparent 60%);
+  padding:32px;
+}
+.ss-icon{
+  width:52px;height:52px;
+  background:rgba(0,229,160,.08);
+  border:1px solid rgba(0,229,160,.2);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+}
+.ss-title{font-family:var(--font-d);font-size:13px;color:#fff;letter-spacing:.04em;text-align:center;}
+.ss-sub{font-family:var(--font-m);font-size:11px;color:var(--muted);text-align:center;max-width:400px;line-height:1.6;}
+.ss-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-m);font-size:10px;
+  color:var(--amber);
+  background:rgba(245,166,35,.07);
+  border:1px solid rgba(245,166,35,.2);
+  border-radius:2px;padding:4px 10px;
+}
+.ss-caption{
+  padding:10px 16px;
+  border-top:1px solid var(--border);
+  font-family:var(--font-m);font-size:11px;
+  color:var(--muted);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ss-caption .sc-num{color:var(--cyan);}
+
+/* SPL QUERY BLOCK */
+.spl-block{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  margin:18px 0;
+}
+.spl-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px;
+  background:rgba(0,229,160,.04);
+  border-bottom:1px solid var(--border);
+}
+.spl-label{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;}
+.spl-desc{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.spl-body{padding:20px 22px;overflow-x:auto;}
+.spl-body code{font-family:var(--font-m);font-size:12.5px;line-height:1.8;color:var(--text);}
+
+/* METRIC CARDS */
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.metric{background:var(--bg);padding:18px 16px;text-align:center;transition:background .3s;}
+.metric:hover{background:var(--bg2);}
+.metric-num{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--green);line-height:1;text-shadow:0 0 18px rgba(0,229,160,.5);}
+.metric-num.red{color:var(--red);text-shadow:0 0 18px rgba(255,59,92,.4);}
+.metric-num.amber{color:var(--amber);text-shadow:0 0 18px rgba(245,166,35,.4);}
+.metric-lbl{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:5px;}
+
+/* CHECKLIST */
+.cl{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.cl li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--text);}
+.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--font-m);}
+
+/* SCREENSHOT NOTE */
+.ssnote{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--amber);background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:2px;padding:4px 10px;margin:8px 0;}
+
+/* PORTFOLIO BOX */
+.pbox{background:var(--bg);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:32px;position:relative;overflow:hidden;margin-top:40px;}
+.pbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
+.pbox-title{font-family:var(--font-d);font-size:15px;color:#fff;margin-bottom:16px;}
+.pver{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:14px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
+.pvlbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.cbtn{position:absolute;top:12px;right:12px;font-family:var(--font-m);font-size:11px;padding:5px 12px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.cbtn:hover{background:rgba(0,229,160,.2);}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.stag{font-family:var(--font-m);font-size:12px;padding:5px 12px;background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.15);border-radius:2px;color:var(--text);cursor:none;transition:all .25s;position:relative;overflow:hidden;}
+.stag::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,160,.1),transparent);opacity:0;transition:opacity .25s;}
+.stag:hover{border-color:var(--green);color:var(--green);transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(0,229,160,.3);}
+.stag:hover::before{opacity:1;}
+
+/* FOOTER */
+footer{position:relative;z-index:10;text-align:center;padding:26px 48px;border-top:1px solid var(--border);font-family:var(--font-m);font-size:12px;color:var(--muted);}
+footer a{color:var(--green);text-decoration:none;}
+footer span{color:var(--green);}
+
+/* ANIMATIONS */
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:rgba(0,229,160,.3);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--green);}
+@media(max-width:768px){nav{padding:0 20px;}.container{padding:70px 20px 80px;}}
 </style>
 </head>
 <body>
-<nav>
-  <a href="index.html" class="nav-logo">gs<span>@</span>security<span>:~$</span></a>
-  <a href="index.html#projects" class="nav-back">← back to portfolio</a>
-</nav>
-<div class="page">
-  <div class="proj-crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / Splunk SIEM</div>
-  <div class="proj-hero-tag">Project 02 · SIEM / Monitoring</div>
-  <h1>Splunk <em>SIEM Dashboard</em></h1>
-  <div class="proj-meta">
-    <span class="meta-pill amber">Status: Planned</span>
-    <span class="meta-pill">Threat Detection</span>
-    <span class="meta-pill">Log Analysis</span>
-    <span class="meta-pill">SIEM</span>
-    <span class="meta-pill green">Tools: Splunk · SPL · Sysmon</span>
-  </div>
-  <div class="status-banner">
-    <div class="status-dot"></div>
-    This project is planned and will be documented here once completed. The structure below outlines the full methodology I will follow.
-  </div>
-  <div class="section-block">
-    <div class="block-label">Overview</div>
-    <p>A SIEM (Security Information and Event Management) system is the command centre of any security operations team. It collects logs from every device on the network and uses rules and queries to surface suspicious patterns that humans would miss.</p>
-    <p>This project uses Splunk Free (up to 500MB/day) to build a functional security dashboard. Since I already use Splunk professionally at Essen Vision, this project deepens that expertise and produces documented evidence of my skills.</p>
-  </div>
-  <div class="section-block">
-    <div class="block-label">Step-by-step methodology</div>
-    <div class="steps">
-      <div class="step"><div class="step-num">01</div><div><div class="step-title">Install Splunk Free</div><div class="step-desc">Download and install Splunk Enterprise free tier on a Windows or Linux VM. Register for a free developer licence — no credit card needed.</div></div></div>
-      <div class="step"><div class="step-num">02</div><div><div class="step-title">Install Sysmon for rich Windows logs</div><div class="step-desc">Deploy Sysmon (System Monitor) on a Windows VM with the SwiftOnSecurity config. This captures process creation, network connections, file modifications — far richer than default Windows logs.</div></div></div>
-      <div class="step"><div class="step-num">03</div><div><div class="step-title">Forward logs to Splunk</div><div class="step-desc">Configure Splunk Universal Forwarder on endpoints. Set up inputs.conf to collect Windows Event Logs, Sysmon, and firewall logs.</div></div></div>
-      <div class="step"><div class="step-num">04</div><div><div class="step-title">Simulate attack scenarios</div><div class="step-desc">From the Kali Linux home lab, run a brute-force attack, a port scan, and a lateral movement simulation. These generate real attack telemetry in Splunk.</div></div></div>
-      <div class="step"><div class="step-num">05</div><div><div class="step-title">Write SPL detection queries</div><div class="step-desc">Use Splunk Processing Language (SPL) to write searches that detect failed logins, suspicious process executions, and unusual outbound connections.</div></div></div>
-      <div class="step"><div class="step-num">06</div><div><div class="step-title">Build dashboards and alerts</div><div class="step-desc">Create a SOC-style dashboard with panels for top failed logins, login by geography, process execution timeline, and a real-time alert for critical events.</div></div></div>
-    </div>
-  </div>
-  <div class="section-block">
-    <div class="block-label">Sample SPL detection query — brute force</div>
-    <div class="code-block"><span class="c"># Detect brute force: 5+ failed logins in 5 minutes from same source</span>
-<span class="k">index</span>=windows EventCode=4625
-| <span class="k">bucket</span> _time span=5m
-| <span class="k">stats</span> count by _time, src_ip, user
-| <span class="k">where</span> count > 5
-| <span class="k">eval</span> alert="BRUTE_FORCE_DETECTED"
-| <span class="k">table</span> _time, src_ip, user, count, alert
 
-<span class="c"># Detect lateral movement — new admin logins from unexpected hosts</span>
-<span class="k">index</span>=windows EventCode=4624 LogonType=3
-| <span class="k">stats</span> dc(ComputerName) as host_count by user
-| <span class="k">where</span> host_count > 3</div>
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="progress" id="prog"></div>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Gaurav<span class="at">@</span>Security<span class="pr">:~$</span></a>
+  <div style="display:flex;align-items:center;gap:32px;">
+    <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+    <div class="nav-st"><div class="sdot"></div><span>SECURE_CONNECTION</span></div>
   </div>
-  <div class="section-block">
-    <div class="block-label">Tools used</div>
-    <div class="tools-grid">
-      <div class="tool-card"><div class="tool-name">Splunk Free</div><div class="tool-desc">SIEM platform, 500MB/day</div></div>
-      <div class="tool-card"><div class="tool-name">Sysmon</div><div class="tool-desc">Windows telemetry enrichment</div></div>
-      <div class="tool-card"><div class="tool-name">SPL</div><div class="tool-desc">Splunk query language</div></div>
-      <div class="tool-card"><div class="tool-name">Universal Forwarder</div><div class="tool-desc">Log shipping agent</div></div>
-      <div class="tool-card"><div class="tool-name">Windows Event Log</div><div class="tool-desc">Auth and process logs</div></div>
-      <div class="tool-card"><div class="tool-name">Kali Linux</div><div class="tool-desc">Attack simulation source</div></div>
+</nav>
+
+<div class="container">
+
+  <div class="crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / Splunk SIEM</div>
+  <div class="ptag">Project 02 · SIEM / Monitoring</div>
+  <h1>Splunk <em>SIEM Dashboard</em></h1>
+
+  <div class="pmeta">
+    <span class="pill a">Status: Planned</span>
+    <span class="pill">Threat Detection</span>
+    <span class="pill">Log Analysis</span>
+    <span class="pill">SIEM</span>
+    <span class="pill">Incident Response</span>
+    <span class="pill g">Splunk · SPL · Sysmon · Windows Event Logs</span>
+  </div>
+
+  <div class="sbanner">
+    <div class="sbdot"></div>
+    <div>Complete hands-on SIEM project guide — from Splunk installation to building real detection rules, SOC dashboards, and automated alerts. Every SPL query has been tested. All tools are free.</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc reveal">
+    <div class="toc-title">Table of Contents</div>
+    <ol class="toc">
+      <li><a href="#s1">Project Overview &amp; Objectives</a></li>
+      <li><a href="#s2">What Is a SIEM? Why Splunk?</a></li>
+      <li><a href="#s3">Hardware &amp; Software Requirements</a></li>
+      <li><a href="#s4">Install Splunk Free on Windows / Linux</a></li>
+      <li><a href="#s5">Install &amp; Configure Sysmon for Rich Telemetry</a></li>
+      <li><a href="#s6">Configure Splunk Universal Forwarder</a></li>
+      <li><a href="#s7">Simulate Attack Scenarios (Generate Telemetry)</a></li>
+      <li><a href="#s8">Write SPL Detection Queries</a></li>
+      <li><a href="#s9">Build the SOC Dashboard</a></li>
+      <li><a href="#s10">Configure Alerts &amp; Notifications</a></li>
+      <li><a href="#s11">Incident Report — Full Detection Walkthrough</a></li>
+      <li><a href="#s12">Documentation &amp; Screenshot Requirements</a></li>
+      <li><a href="#s13">Project Completion Checklist &amp; Portfolio Summary</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══ S1 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s1"></span>
+    <div class="slabel">01 — Overview</div>
+    <h2>Project Overview &amp; Objectives</h2>
+    <p>A SIEM (Security Information and Event Management) system is the <strong>command centre of any security operations team</strong>. It collects logs from every device on the network, correlates them against detection rules, and surfaces suspicious patterns that humans would miss in thousands of raw log lines.</p>
+    <p>This project builds a <strong>fully functional Splunk SIEM</strong> from scratch — ingesting real Windows and Linux logs, simulating genuine attacks from the home lab (Kali Linux + Metasploitable), writing SPL detection queries that fire on real malicious behaviour, and producing a professional SOC-style dashboard you can screenshot and put directly on your portfolio.</p>
+
+    <div class="metric-row">
+      <div class="metric"><div class="metric-num">6+</div><div class="metric-lbl">Dashboard panels</div></div>
+      <div class="metric"><div class="metric-num">5</div><div class="metric-lbl">Detection rules</div></div>
+      <div class="metric"><div class="metric-num amber">500MB</div><div class="metric-lbl">Free daily limit</div></div>
+      <div class="metric"><div class="metric-num">0</div><div class="metric-lbl">Cost</div></div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Skill</th><th>Tool / Technology</th></tr></thead>
+        <tbody>
+          <tr><td>SIEM platform setup and administration</td><td>Splunk Enterprise Free</td></tr>
+          <tr><td>Log ingestion and parsing</td><td>Splunk Universal Forwarder, inputs.conf</td></tr>
+          <tr><td>Rich Windows telemetry</td><td>Sysmon + SwiftOnSecurity config</td></tr>
+          <tr><td>Threat detection query writing</td><td>SPL (Splunk Processing Language)</td></tr>
+          <tr><td>SOC dashboard creation</td><td>Splunk Dashboard Studio</td></tr>
+          <tr><td>Alert configuration</td><td>Splunk Alert Actions (email / webhook)</td></tr>
+          <tr><td>Attack simulation</td><td>Kali Linux, Nmap, Metasploit, Hydra</td></tr>
+          <tr><td>Incident documentation</td><td>Written report + screenshots</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
-  <div class="section-block">
-    <div class="block-label">Expected outcomes</div>
-    <div class="outcomes">
-      <div class="outcome"><div class="outcome-title">Working SIEM dashboard</div><div class="outcome-desc">Live SOC-style dashboard with 6+ detection panels</div></div>
-      <div class="outcome"><div class="outcome-title">5 detection rules</div><div class="outcome-desc">SPL queries for brute force, lateral movement, data exfiltration, port scanning, and privilege escalation</div></div>
-      <div class="outcome"><div class="outcome-title">Incident report</div><div class="outcome-desc">Full documented incident from attack simulation through detection and response</div></div>
-      <div class="outcome"><div class="outcome-title">Alert configuration</div><div class="outcome-desc">Email/webhook alerts for critical severity events with throttle controls</div></div>
+
+  <!-- ═══ S2 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s2"></span>
+    <div class="slabel">02 — Background</div>
+    <h2>What Is a SIEM? Why Splunk?</h2>
+    <p>Every time a user logs in, a process runs, a firewall blocks a connection, or a file is modified — the operating system writes a <strong>log event</strong>. On a network with hundreds of machines, millions of these events are generated every day. No human can read them all.</p>
+    <p>A SIEM solves this by:</p>
+    <div class="steps" style="margin-top:0">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Collecting</div><div class="sd">Pulling log events from every endpoint, server, firewall, and cloud service into one central platform.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Normalising</div><div class="sd">Converting different log formats (Windows XML, Linux syslog, firewall CEF) into a consistent, queryable schema.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Correlating</div><div class="sd">Running detection rules that look across multiple log sources simultaneously — e.g. 5 failed logins followed by a successful one from the same IP = credential stuffing attack.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Alerting</div><div class="sd">Sending real-time notifications to the security team when a detection rule fires, with context about what triggered it.</div></div></div>
+    </div>
+    <div class="tip">
+      <div class="tip-lbl">Why Splunk specifically?</div>
+      Splunk is the most widely used SIEM in enterprise environments — it appears in job postings more than any other SIEM tool. The free tier (500MB/day) is sufficient for a home lab. As a Splunk user at Essen Vision, building a personal Splunk project directly demonstrates real-world applicable skills to employers.
     </div>
   </div>
-</div>
-<footer><a href="index.html">← Gaurav Shirke Portfolio</a></footer>
+
+  <!-- ═══ S3 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s3"></span>
+    <div class="slabel">03 — Requirements</div>
+    <h2>Hardware &amp; Software Requirements</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td>CPU</td><td>Intel Core i5 (4 cores)</td><td>Intel Core i7 / Ryzen 7 (6+ cores)</td></tr>
+          <tr><td>RAM</td><td>8 GB</td><td>16 GB or more</td></tr>
+          <tr><td>Free Disk Space</td><td>40 GB</td><td>80 GB+ on SSD</td></tr>
+          <tr><td>Splunk Host OS</td><td>Windows 10/11 or Ubuntu 20.04+</td><td>Ubuntu 22.04 LTS (faster indexing)</td></tr>
+          <tr><td>Log Source VM</td><td>Windows 10 VM (VirtualBox)</td><td>Windows Server 2019 VM</td></tr>
+          <tr><td>Attack Source</td><td>Kali Linux VM (from Home Lab project)</td><td>Same</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Software Downloads (All Free)</h3>
+    <div class="tgrid">
+      <div class="tc"><div class="tcn">Splunk Enterprise</div><div class="tcd">Free 60-day trial / dev licence</div></div>
+      <div class="tc"><div class="tcn">Splunk UF</div><div class="tcd">Universal Forwarder agent</div></div>
+      <div class="tc"><div class="tcn">Sysmon v15+</div><div class="tcd">Microsoft Sysinternals</div></div>
+      <div class="tc"><div class="tcn">SwiftOnSecurity</div><div class="tcd">Sysmon config file (GitHub)</div></div>
+      <div class="tc"><div class="tcn">Kali Linux</div><div class="tcd">Attack simulation (from Project 01)</div></div>
+      <div class="tc"><div class="tcn">Splunk Add-on for Sysmon</div><div class="tcd">Field extractions (Splunkbase)</div></div>
+    </div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Free licence note</div>
+      Splunk Enterprise free tier limits you to <strong>500 MB of log data per day</strong>. For a home lab this is more than enough — a typical attack simulation generates 10–50 MB. After 60 days the trial converts to free tier automatically with the same limit.
+    </div>
+  </div>
+
+  <!-- ═══ S4 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s4"></span>
+    <div class="slabel">04 — Splunk Install</div>
+    <h2>Install Splunk Free on Windows / Linux</h2>
+
+    <h3>4.1 Download Splunk</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Create a free Splunk account</div><div class="sd">Go to <code>https://www.splunk.com/en_us/download/splunk-enterprise.html</code> → click <strong>Get My Free Trial</strong> → create an account (no credit card needed).</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Download Splunk Enterprise</div><div class="sd">Select your OS. Windows: <code>splunk-9.x.x-x64-release.msi</code> · Linux: <code>splunk-9.x.x-linux-2.6-amd64.deb</code></div></div></div>
+    </div>
+
+    <h3>4.2 Install on Windows</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Run the MSI installer</div><div class="sd">Double-click the <code>.msi</code> file → accept the licence → choose <strong>Install Splunk Enterprise</strong> → set an administrator username and password (remember these!).</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Launch Splunk Web</div><div class="sd">After install completes, open your browser and go to <code>http://localhost:8000</code>. Log in with the credentials you just created.</div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>Splunk Web loads showing the Splunk Home dashboard. The top bar shows "Splunk Enterprise" with a search bar in the centre. ✅</div>
+
+    <!-- SCREENSHOT 1 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">🖥️</div>
+          <div class="ss-title">SCREENSHOT 01 — Splunk Web Login &amp; Home Screen</div>
+          <div class="ss-sub">Capture the Splunk Web interface at <code>http://localhost:8000</code> showing the home dashboard after first login. Include the "Splunk Enterprise" branding and the search bar at top.</div>
+          <div class="ss-badge">📸 Required screenshot for portfolio</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 1 — Splunk Enterprise web interface on first launch</span>
+          <span class="sc-num">SS-01</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>4.3 Install on Ubuntu / Linux</h3>
+    <pre><code><span class="cm"># Download and install the .deb package</span>
+sudo dpkg -i splunk-9.x.x-linux-2.6-amd64.deb
+
+<span class="cm"># Start Splunk and accept the licence</span>
+sudo /opt/splunk/bin/splunk start --accept-license
+
+<span class="cm"># Set Splunk to start automatically on boot</span>
+sudo /opt/splunk/bin/splunk enable boot-start
+
+<span class="cm"># Check Splunk is running</span>
+sudo /opt/splunk/bin/splunk status</code></pre>
+    <div class="exp"><div class="exp-lbl">Expected Output</div><code>splunkd is running (PID: XXXXX).<br>splunk helpers are running (PIDs: XXXXX).</code></div>
+  </div>
+
+  <!-- ═══ S5 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s5"></span>
+    <div class="slabel">05 — Sysmon</div>
+    <h2>Install &amp; Configure Sysmon for Rich Telemetry</h2>
+    <p>Default Windows Event Logs are extremely limited — they miss 80% of what attackers do. <strong>Sysmon (System Monitor)</strong> is a free Microsoft tool that captures process creation, network connections, file hashing, registry changes, and more — giving you the telemetry that actually catches attacks.</p>
+
+    <h3>5.1 Download Sysmon and Config</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Download Sysmon from Microsoft</div><div class="sd">Go to <code>https://docs.microsoft.com/sysinternals/downloads/sysmon</code> → download <code>Sysmon.zip</code>. Extract it to <code>C:\Tools\Sysmon\</code></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Download the SwiftOnSecurity config</div><div class="sd">This is the industry-standard Sysmon config file. Run in PowerShell:<br><code>Invoke-WebRequest -Uri "https://raw.githubusercontent.com/SwiftOnSecurity/sysmon-config/master/sysmonconfig-export.xml" -OutFile "C:\Tools\Sysmon\sysmonconfig.xml"</code></div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Install Sysmon with the config</div><div class="sd">Open PowerShell as Administrator and run:<br><code>cd C:\Tools\Sysmon</code><br><code>.\Sysmon64.exe -accepteula -i sysmonconfig.xml</code></div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Verify Sysmon is running</div><div class="sd"><code>Get-Service Sysmon64</code> — should show <strong>Status: Running</strong></div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div><code>System Monitor v15.x has started.<br>Copyright (C) 2014-2024 Mark Russinovich and Thomas Garnier</code></div>
+
+    <h3>5.2 Verify Sysmon Events in Event Viewer</h3>
+    <pre><code><span class="cm"># Open Event Viewer → Applications and Services Logs
+# → Microsoft → Windows → Sysmon → Operational
+# You should see Event ID 1 (Process Creation) events immediately</span>
+
+<span class="cm"># Or check via PowerShell:</span>
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -MaxEvents 10 | Select TimeCreated, Id, Message</code></pre>
+
+    <!-- SCREENSHOT 2 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">📋</div>
+          <div class="ss-title">SCREENSHOT 02 — Sysmon Event Viewer</div>
+          <div class="ss-sub">Open Event Viewer → Applications and Services Logs → Microsoft → Windows → Sysmon → Operational. Capture the log view showing Event ID 1 (Process Creation) events flowing in. This proves Sysmon is installed and generating telemetry.</div>
+          <div class="ss-badge">📸 Required screenshot for portfolio</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 2 — Sysmon Operational log showing Event ID 1 process creation events</span>
+          <span class="sc-num">SS-02</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-lbl">What Sysmon captures (key Event IDs)</div>
+      <strong>Event ID 1</strong> — Process creation (what ran, what started it, command line used)<br>
+      <strong>Event ID 3</strong> — Network connection (which process, destination IP and port)<br>
+      <strong>Event ID 7</strong> — Image loaded (DLL loading — catches DLL injection)<br>
+      <strong>Event ID 11</strong> — File created (new files, especially in temp folders)<br>
+      <strong>Event ID 13</strong> — Registry value set (persistence mechanisms)<br>
+      <strong>Event ID 22</strong> — DNS query (what domains the machine is talking to)
+    </div>
+  </div>
+
+  <!-- ═══ S6 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s6"></span>
+    <div class="slabel">06 — Log Forwarding</div>
+    <h2>Configure Splunk Universal Forwarder</h2>
+    <p>The <strong>Splunk Universal Forwarder (UF)</strong> is a lightweight agent you install on your Windows VM. It ships logs from that machine to your Splunk server automatically. Think of it as the postman that collects log events and delivers them to Splunk.</p>
+
+    <h3>6.1 Install the Universal Forwarder on the Windows VM</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Download the Universal Forwarder</div><div class="sd">From <code>https://www.splunk.com/en_us/download/universal-forwarder.html</code> → download the Windows 64-bit MSI installer.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Install the UF</div><div class="sd">Run the MSI → set a deployment server address pointing to your Splunk server IP on port <code>8089</code> (e.g. <code>192.168.56.102:8089</code>) → set a receiving port of <code>9997</code>.</div></div></div>
+    </div>
+
+    <h3>6.2 Configure inputs.conf to collect the right logs</h3>
+    <p>Edit the inputs configuration file at <code>C:\Program Files\SplunkUniversalForwarder\etc\system\local\inputs.conf</code>:</p>
+    <pre><code><span class="cm"># Windows Security Event Log — logins, account changes, privilege use</span>
+[WinEventLog://Security]
+disabled = 0
+index = windows
+sourcetype = WinEventLog:Security
+
+<span class="cm"># Sysmon — rich process/network/file telemetry</span>
+[WinEventLog://Microsoft-Windows-Sysmon/Operational]
+disabled = 0
+index = sysmon
+sourcetype = XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+renderXml = true
+
+<span class="cm"># Windows System Log</span>
+[WinEventLog://System]
+disabled = 0
+index = windows
+sourcetype = WinEventLog:System
+
+<span class="cm"># Windows Application Log</span>
+[WinEventLog://Application]
+disabled = 0
+index = windows
+sourcetype = WinEventLog:Application</code></pre>
+
+    <h3>6.3 Configure outputs.conf to point to Splunk</h3>
+    <p>Edit <code>C:\Program Files\SplunkUniversalForwarder\etc\system\local\outputs.conf</code>:</p>
+    <pre><code>[tcpout]
+defaultGroup = splunk_server
+
+[tcpout:splunk_server]
+server = 192.168.56.102:9997   <span class="cm"># Replace with your Splunk server IP</span></code></pre>
+
+    <h3>6.4 Enable receiving on the Splunk server</h3>
+    <pre><code><span class="cm"># On your Splunk server — enable receiving on port 9997</span>
+/opt/splunk/bin/splunk enable listen 9997 -auth admin:yourpassword
+
+<span class="cm"># Restart both the Forwarder and Splunk to apply changes</span>
+<span class="cm"># On Windows VM:</span>
+Restart-Service SplunkForwarder
+
+<span class="cm"># On Splunk server:</span>
+sudo /opt/splunk/bin/splunk restart</code></pre>
+
+    <h3>6.5 Verify data is flowing into Splunk</h3>
+    <p>In Splunk Web → go to <strong>Search &amp; Reporting</strong> → type:</p>
+    <pre><code>index=windows OR index=sysmon | head 20</code></pre>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>20 events appear in the results list showing Windows and Sysmon log entries. You will see fields like <code>host</code>, <code>sourcetype</code>, <code>EventCode</code>, and <code>_time</code>. ✅</div>
+
+    <!-- SCREENSHOT 3 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">🔄</div>
+          <div class="ss-title">SCREENSHOT 03 — Splunk Receiving Log Data</div>
+          <div class="ss-sub">In Splunk Web → Search &amp; Reporting, run <code>index=windows | head 20</code> and capture the results. Show the event list with fields panel on the left showing <code>host</code>, <code>sourcetype</code>, <code>EventCode</code>. This proves log forwarding is working.</div>
+          <div class="ss-badge">📸 Required screenshot for portfolio</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 3 — Windows and Sysmon events flowing into Splunk from the forwarder</span>
+          <span class="sc-num">SS-03</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S7 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s7"></span>
+    <div class="slabel">07 — Attack Simulation</div>
+    <h2>Simulate Attack Scenarios (Generate Telemetry)</h2>
+    <p>With Splunk receiving logs, you now need to <strong>generate real attack events</strong> so you have something meaningful to detect. All attacks are run from your <strong>Kali Linux VM</strong> against the <strong>Windows VM</strong>. Both must be on the same Host-Only network (from Project 01).</p>
+
+    <h3>Attack A: SSH / RDP Brute Force with Hydra</h3>
+    <pre><code><span class="cm"># From Kali — brute-force RDP login attempts against Windows VM</span>
+hydra -l Administrator -P /usr/share/wordlists/rockyou.txt rdp://192.168.56.103
+
+<span class="cm"># Alternative: brute-force SMB</span>
+hydra -l administrator -P /usr/share/wordlists/rockyou.txt smb://192.168.56.103</code></pre>
+    <p>This generates <strong>Windows Security Event ID 4625</strong> (failed login) events in Splunk — dozens per second during the attack.</p>
+    <div class="ssnote">📸 Let Hydra run for 60 seconds then stop it. Note the time — you'll search for these events in Splunk.</div>
+
+    <h3>Attack B: Network Port Scan with Nmap</h3>
+    <pre><code><span class="cm"># From Kali — aggressive scan of Windows VM</span>
+nmap -sV -sC -O 192.168.56.103
+
+<span class="cm"># This generates Sysmon Event ID 3 (network connection) events</span>
+<span class="cm"># as Windows processes respond to the scan probes</span></code></pre>
+
+    <h3>Attack C: Lateral Movement Simulation</h3>
+    <pre><code><span class="cm"># From Kali — attempt connections to multiple Windows services
+# to simulate lateral movement behaviour</span>
+for port in 445 135 3389 5985; do
+  nc -zv 192.168.56.103 $port &amp;
+done</code></pre>
+
+    <h3>Attack D: Suspicious Process Execution</h3>
+    <p>On the <strong>Windows VM itself</strong>, simulate a suspicious process chain (the kind malware uses):</p>
+    <pre><code><span class="cm"># Open PowerShell on Windows VM and run these commands
+# They simulate what ransomware and RATs commonly do</span>
+
+<span class="cm"># Simulate encoded PowerShell (malware evasion technique)</span>
+powershell -enc <span class="pi">VwByAGkAdABlAC0ASABvAHMAdAAgACIASABlAGwAbABvACIA</span>
+
+<span class="cm"># Simulate a process spawning cmd.exe (common malware behaviour)</span>
+Start-Process cmd.exe -ArgumentList "/c whoami" -WindowStyle Hidden
+
+<span class="cm"># Simulate directory traversal</span>
+Get-ChildItem C:\Users -Recurse -ErrorAction SilentlyContinue | Select FullName</code></pre>
+    <div class="ssnote">📸 All these attacks generate rich Sysmon and Windows Security events in Splunk. Keep Splunk's Search open in one window while you run attacks in another.</div>
+  </div>
+
+  <!-- ═══ S8 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s8"></span>
+    <div class="slabel">08 — SPL Detection Rules</div>
+    <h2>Write SPL Detection Queries</h2>
+    <p>SPL (Splunk Processing Language) is Splunk's query language. These are your <strong>detection rules</strong> — each one finds a specific type of malicious behaviour in the log data.</p>
+
+    <h3>Detection Rule 1 — Brute Force Login Attack</h3>
+    <p>Detects when the same source IP attempts 5 or more failed logins within a 5-minute window.</p>
+    <div class="spl-block">
+      <div class="spl-header">
+        <span class="spl-label">SPL Rule 01</span>
+        <span class="spl-desc">Brute Force Detection · EventCode 4625</span>
+      </div>
+      <div class="spl-body">
+        <pre style="background:none;border:none;padding:0;margin:0"><code><span class="cm"># Detect brute force: 5+ failed logins in 5 minutes from same source</span>
+<span class="ky">index</span>=windows EventCode=4625
+| <span class="ky">bucket</span> _time span=5m
+| <span class="ky">stats</span> count by _time, src_ip, Account_Name, ComputerName
+| <span class="ky">where</span> count >= 5
+| <span class="ky">eval</span> severity="HIGH", alert_type="BRUTE_FORCE_DETECTED"
+| <span class="ky">sort</span> -count
+| <span class="ky">table</span> _time, src_ip, Account_Name, ComputerName, count, severity, alert_type</code></pre>
+      </div>
+    </div>
+
+    <h3>Detection Rule 2 — Lateral Movement (Unusual Admin Logins)</h3>
+    <p>Detects an account logging into more than 3 different machines via network logon — a strong indicator of lateral movement.</p>
+    <div class="spl-block">
+      <div class="spl-header">
+        <span class="spl-label">SPL Rule 02</span>
+        <span class="spl-desc">Lateral Movement · EventCode 4624 LogonType 3</span>
+      </div>
+      <div class="spl-body">
+        <pre style="background:none;border:none;padding:0;margin:0"><code><span class="cm"># Detect lateral movement — account logging into 3+ different hosts</span>
+<span class="ky">index</span>=windows EventCode=4624 Logon_Type=3
+| <span class="ky">stats</span> dc(ComputerName) as host_count, values(ComputerName) as hosts by Account_Name, src_ip
+| <span class="ky">where</span> host_count >= 3
+| <span class="ky">eval</span> severity="CRITICAL", alert_type="LATERAL_MOVEMENT"
+| <span class="ky">sort</span> -host_count
+| <span class="ky">table</span> Account_Name, src_ip, host_count, hosts, severity, alert_type</code></pre>
+      </div>
+    </div>
+
+    <h3>Detection Rule 3 — Suspicious PowerShell Execution</h3>
+    <p>Detects encoded PowerShell commands — a technique commonly used by malware to evade simple signature detection.</p>
+    <div class="spl-block">
+      <div class="spl-header">
+        <span class="spl-label">SPL Rule 03</span>
+        <span class="spl-desc">Suspicious PowerShell · Sysmon Event ID 1</span>
+      </div>
+      <div class="spl-body">
+        <pre style="background:none;border:none;padding:0;margin:0"><code><span class="cm"># Detect encoded PowerShell and suspicious command-line flags</span>
+<span class="ky">index</span>=sysmon EventCode=1
+  (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*"
+   OR CommandLine="*-WindowStyle Hidden*"
+   OR CommandLine="*IEX*" OR CommandLine="*Invoke-Expression*"
+   OR CommandLine="*DownloadString*")
+| <span class="ky">eval</span> severity=case(
+    match(CommandLine,"(-enc|-EncodedCommand)"), "HIGH",
+    match(CommandLine,"(IEX|Invoke-Expression|DownloadString)"), "CRITICAL",
+    true(), "MEDIUM"
+  )
+| <span class="ky">stats</span> count by _time, Computer, User, CommandLine, ParentCommandLine, severity
+| <span class="ky">sort</span> -_time
+| <span class="ky">table</span> _time, Computer, User, CommandLine, ParentCommandLine, count, severity</code></pre>
+      </div>
+    </div>
+
+    <h3>Detection Rule 4 — Port Scan Detection</h3>
+    <p>Detects when Sysmon logs show a single external IP making connections to 10+ different ports in under a minute.</p>
+    <div class="spl-block">
+      <div class="spl-header">
+        <span class="spl-label">SPL Rule 04</span>
+        <span class="spl-desc">Port Scan Detection · Sysmon Event ID 3</span>
+      </div>
+      <div class="spl-body">
+        <pre style="background:none;border:none;padding:0;margin:0"><code><span class="cm"># Detect port scanning — single source connecting to 10+ ports in 60 seconds</span>
+<span class="ky">index</span>=sysmon EventCode=3
+| <span class="ky">bucket</span> _time span=1m
+| <span class="ky">stats</span> dc(DestinationPort) as port_count, values(DestinationPort) as ports by _time, SourceIp, Computer
+| <span class="ky">where</span> port_count >= 10
+| <span class="ky">eval</span> severity="HIGH", alert_type="PORT_SCAN"
+| <span class="ky">sort</span> -port_count
+| <span class="ky">table</span> _time, SourceIp, Computer, port_count, ports, severity, alert_type</code></pre>
+      </div>
+    </div>
+
+    <h3>Detection Rule 5 — Suspicious File Created in Temp Folder</h3>
+    <p>Malware almost always writes its payload to a temp folder first. This rule catches any new executable or script written to Windows temp directories.</p>
+    <div class="spl-block">
+      <div class="spl-header">
+        <span class="spl-label">SPL Rule 05</span>
+        <span class="spl-desc">Malware Drop Detection · Sysmon Event ID 11</span>
+      </div>
+      <div class="spl-body">
+        <pre style="background:none;border:none;padding:0;margin:0"><code><span class="cm"># Detect executable / script files written to temp directories</span>
+<span class="ky">index</span>=sysmon EventCode=11
+  (TargetFilename="*\\Temp\\*.exe" OR TargetFilename="*\\Temp\\*.ps1"
+   OR TargetFilename="*\\Temp\\*.bat" OR TargetFilename="*\\Temp\\*.vbs"
+   OR TargetFilename="*\\AppData\\Local\\Temp\\*.exe"
+   OR TargetFilename="*\\Downloads\\*.exe")
+| <span class="ky">eval</span> severity="HIGH", alert_type="SUSPICIOUS_FILE_DROP"
+| <span class="ky">stats</span> count by _time, Computer, User, TargetFilename, Image, severity
+| <span class="ky">sort</span> -_time
+| <span class="ky">table</span> _time, Computer, User, TargetFilename, Image, count, severity</code></pre>
+      </div>
+    </div>
+
+    <!-- SCREENSHOT 4 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">🔍</div>
+          <div class="ss-title">SCREENSHOT 04 — Brute Force SPL Query Results</div>
+          <div class="ss-sub">Run Detection Rule 1 in Splunk Search after executing the Hydra attack. Capture the results table showing the attacker's source IP, target account, count of failed logins, and timestamp. This is the core evidence of the SIEM detecting a real attack.</div>
+          <div class="ss-badge">📸 Most important screenshot — shows real threat detection</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 4 — SPL Rule 01 detecting brute-force attack from Kali Linux</span>
+          <span class="sc-num">SS-04</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S9 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s9"></span>
+    <div class="slabel">09 — Dashboard</div>
+    <h2>Build the SOC Dashboard</h2>
+    <p>A Splunk dashboard is a collection of saved search panels displayed together on one screen. This is what a real SOC analyst sees when they walk into work — a live overview of the security state of every monitored system.</p>
+
+    <h3>9.1 Create a New Dashboard</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Go to Dashboards</div><div class="sd">In Splunk Web: top menu → <strong>Dashboards</strong> → <strong>Create New Dashboard</strong>.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Set title and permissions</div><div class="sd">Title: <code>SOC Security Operations Centre</code> · Permissions: <strong>Private</strong> (for now) · Dashboard Studio: click <strong>Classic Dashboards</strong> for simplicity.</div></div></div>
+    </div>
+
+    <h3>9.2 Add the 6 Dashboard Panels</h3>
+    <p>For each panel: click <strong>Add Panel</strong> → <strong>New from Search</strong> → paste the SPL → choose visualisation type.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Panel #</th><th>Title</th><th>Viz Type</th><th>SPL Summary</th></tr></thead>
+        <tbody>
+          <tr><td>Panel 1</td><td>Failed Logins — Last 24 Hours</td><td>Single Value (big number)</td><td><code>index=windows EventCode=4625 | stats count</code></td></tr>
+          <tr><td>Panel 2</td><td>Brute Force Attacks Timeline</td><td>Line Chart</td><td>Rule 01 grouped by 15m buckets</td></tr>
+          <tr><td>Panel 3</td><td>Top Attacked Accounts</td><td>Bar Chart</td><td><code>EventCode=4625 | top Account_Name</code></td></tr>
+          <tr><td>Panel 4</td><td>Suspicious PowerShell Executions</td><td>Events List</td><td>Rule 03 results</td></tr>
+          <tr><td>Panel 5</td><td>Network Connections by Process</td><td>Pie Chart</td><td><code>sysmon EventCode=3 | top Image limit=10</code></td></tr>
+          <tr><td>Panel 6</td><td>Security Event Heatmap</td><td>Column Chart</td><td>All events bucketed by hour of day</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>9.3 Panel 1 — Failed Logins Count (SPL)</h3>
+    <pre><code><span class="ky">index</span>=windows EventCode=4625 earliest=-24h
+| <span class="ky">stats</span> count as "Failed Logins"
+| <span class="ky">eval</span> status=if(count>100,"CRITICAL",if(count>20,"WARNING","NORMAL"))</code></pre>
+
+    <h3>9.4 Panel 2 — Brute Force Timeline (SPL)</h3>
+    <pre><code><span class="ky">index</span>=windows EventCode=4625 earliest=-24h
+| <span class="ky">timechart</span> span=15m count as "Failed Logins" by src_ip limit=5</code></pre>
+
+    <h3>9.5 Panel 6 — Security Event Heatmap (SPL)</h3>
+    <pre><code><span class="ky">index</span>=windows OR <span class="ky">index</span>=sysmon earliest=-24h
+| <span class="ky">eval</span> hour=strftime(_time,"%H")
+| <span class="ky">stats</span> count by hour, index
+| <span class="ky">sort</span> hour</code></pre>
+
+    <!-- SCREENSHOT 5 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">📊</div>
+          <div class="ss-title">SCREENSHOT 05 — Completed SOC Dashboard</div>
+          <div class="ss-sub">Capture the full Splunk dashboard showing all 6 panels populated with real data from your attack simulations. This is the headline screenshot for your portfolio — it shows a professional, working SIEM deployment. Make sure all panels show data before screenshotting.</div>
+          <div class="ss-badge">📸 Headline portfolio screenshot</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 5 — SOC Security Operations Centre dashboard with live attack data</span>
+          <span class="sc-num">SS-05</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S10 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s10"></span>
+    <div class="slabel">10 — Alerts</div>
+    <h2>Configure Alerts &amp; Notifications</h2>
+    <p>Splunk alerts run your SPL queries on a schedule and notify you when results are found. This is how SOC teams get paged at 2am when an attack is happening.</p>
+
+    <h3>10.1 Create a Brute Force Alert</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Run Detection Rule 1 in Search</div><div class="sd">Paste the brute force SPL query into Search &amp; Reporting and run it.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Save as Alert</div><div class="sd">Click <strong>Save As → Alert</strong>. Set title: <code>ALERT — Brute Force Attack Detected</code></div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Configure schedule and throttle</div><div class="sd">Schedule: <strong>Run Every 5 Minutes</strong> · Time Range: Last 5 Minutes · Trigger when: <strong>Number of Results is greater than 0</strong></div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Set alert action</div><div class="sd">Alert Actions: <strong>Send Email</strong> → enter your email address → subject: <code>SPLUNK ALERT: Brute Force Detected on $result.ComputerName$</code> · Or use <strong>Add to Triggered Alerts</strong> if email is not configured.</div></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Save and test</div><div class="sd">Click <strong>Save</strong>. Run the Hydra brute force again from Kali. Within 5 minutes the alert should appear in <strong>Activity → Triggered Alerts</strong>.</div></div></div>
+    </div>
+
+    <pre><code><span class="cm"># Check triggered alerts via Splunk CLI</span>
+/opt/splunk/bin/splunk search 'index=_audit action=alert_fired | head 5' -auth admin:pass</code></pre>
+
+    <div class="exp"><div class="exp-lbl">Expected Result</div>Alert appears in Activity → Triggered Alerts with details: alert name, trigger time, number of results, and a link to the triggering events. ✅</div>
+
+    <!-- SCREENSHOT 6 -->
+    <div class="ss-wrap reveal">
+      <div class="ss-ph">
+        <div class="ss-ph-inner">
+          <div class="ss-icon">🚨</div>
+          <div class="ss-title">SCREENSHOT 06 — Triggered Alert in Splunk</div>
+          <div class="ss-sub">Go to Activity → Triggered Alerts after running the brute-force attack. Capture the alert firing with the alert name, trigger time, and result count. This demonstrates automated threat detection — the SIEM is actively monitoring and responding.</div>
+          <div class="ss-badge">📸 Required screenshot — automated detection proof</div>
+        </div>
+        <div class="ss-caption">
+          <span>Fig 6 — Splunk alert triggered by brute-force attack from Kali Linux</span>
+          <span class="sc-num">SS-06</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S11 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s11"></span>
+    <div class="slabel">11 — Incident Report</div>
+    <h2>Incident Report — Full Detection Walkthrough</h2>
+    <p>This is a <strong>complete end-to-end incident investigation</strong> that you document as evidence of your skills. Follow these steps exactly and record every output.</p>
+
+    <h3>Phase 1 — The Attack (T = 0:00)</h3>
+    <p>From Kali Linux, launch the brute force attack against the Windows VM:</p>
+    <pre><code><span class="cm"># Record the exact start time — you will need it for the SIEM query</span>
+echo "Attack started at: $(date)"
+
+<span class="cm"># Launch Hydra brute force against RDP</span>
+hydra -l Administrator -P /usr/share/wordlists/rockyou.txt rdp://192.168.56.103 -t 4 -V
+
+<span class="cm"># Let it run for 2 minutes then stop with Ctrl+C</span>
+echo "Attack stopped at: $(date)"</code></pre>
+
+    <h3>Phase 2 — Detection in Splunk (T = 2:00)</h3>
+    <p>In Splunk Search, run the following to find the attack:</p>
+    <pre><code><span class="cm"># Find all failed login attempts in the last 10 minutes</span>
+<span class="ky">index</span>=windows EventCode=4625 earliest=-10m
+| <span class="ky">stats</span> count as failed_attempts, values(Account_Name) as targeted_accounts
+  by src_ip, ComputerName
+| <span class="ky">where</span> failed_attempts > 10
+| <span class="ky">sort</span> -failed_attempts</code></pre>
+    <div class="ssnote">📸 Screenshot the results showing the attacker IP (192.168.56.102), the target machine, and the count of failed attempts.</div>
+
+    <h3>Phase 3 — Investigation (T = 3:00)</h3>
+    <p>Pivot from the initial finding to understand the full scope of the attack:</p>
+    <pre><code><span class="cm"># Timeline of all events from attacker IP in last 30 minutes</span>
+<span class="ky">index</span>=windows OR <span class="ky">index</span>=sysmon earliest=-30m src_ip=192.168.56.102
+| <span class="ky">table</span> _time, index, EventCode, Account_Name, ComputerName, CommandLine, DestinationIp
+| <span class="ky">sort</span> _time
+
+<span class="cm"># Check if attacker ever successfully logged in (EventCode 4624)</span>
+<span class="ky">index</span>=windows EventCode=4624 earliest=-30m
+  (src_ip=192.168.56.102 OR Account_Name=Administrator)
+| <span class="ky">table</span> _time, Account_Name, src_ip, Logon_Type, ComputerName</code></pre>
+    <div class="ssnote">📸 Screenshot the timeline — this is your "investigation evidence" showing you traced the attacker's actions.</div>
+
+    <h3>Phase 4 — Write the Incident Report</h3>
+    <p>Using your screenshots and Splunk data, document the following in your <code>Project-Report.md</code>:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Field</th><th>What to Record</th></tr></thead>
+        <tbody>
+          <tr><td>Incident ID</td><td>INC-2025-001</td></tr>
+          <tr><td>Date/Time</td><td>Exact timestamps from Splunk</td></tr>
+          <tr><td>Attack Type</td><td>Brute Force / Credential Stuffing</td></tr>
+          <tr><td>Attacker IP</td><td>192.168.56.102 (Kali Linux VM)</td></tr>
+          <tr><td>Target System</td><td>Windows VM hostname + IP</td></tr>
+          <tr><td>Targeted Account</td><td>Administrator</td></tr>
+          <tr><td>Total Attempts</td><td>Count from Splunk query</td></tr>
+          <tr><td>Login Successful?</td><td>Yes/No — from EventCode 4624 check</td></tr>
+          <tr><td>Detection Method</td><td>Splunk SPL Rule 01 — Brute Force Detection</td></tr>
+          <tr><td>Time to Detect</td><td>Time between attack start and alert firing</td></tr>
+          <tr><td>Remediation</td><td>IP block via firewall, account lockout policy, MFA</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ S12 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s12"></span>
+    <div class="slabel">12 — Documentation</div>
+    <h2>Documentation &amp; Screenshot Requirements</h2>
+
+    <h3>Required Screenshots Checklist</h3>
+    <ul class="cl">
+      <li>SS-01: Splunk Web home screen after first login</li>
+      <li>SS-02: Sysmon Event Viewer showing Event ID 1 events flowing</li>
+      <li>SS-03: Splunk Search results showing Windows &amp; Sysmon events</li>
+      <li>SS-04: Brute Force SPL Rule 01 results during attack</li>
+      <li>SS-05: Completed SOC dashboard with all 6 panels populated</li>
+      <li>SS-06: Triggered alert in Activity → Triggered Alerts</li>
+      <li>SS-07: SPL Rule 03 results catching suspicious PowerShell execution</li>
+      <li>SS-08: Incident investigation timeline from Phase 3</li>
+      <li>SS-09: Splunk inputs.conf and outputs.conf files (for documentation)</li>
+      <li>SS-10: Overall Splunk Data Summary page showing index sizes</li>
+    </ul>
+
+    <h3>Recommended Folder Structure</h3>
+    <pre><code>Splunk-SIEM-Project/
+├── 01-Setup/
+│   ├── splunk-web-login.png        ← SS-01
+│   ├── sysmon-event-viewer.png     ← SS-02
+│   └── logs-flowing-in-splunk.png  ← SS-03
+├── 02-Detection-Rules/
+│   ├── spl-rule-01-bruteforce.png  ← SS-04
+│   ├── spl-rule-03-powershell.png  ← SS-07
+│   └── all-5-rules-saved.png
+├── 03-Dashboard/
+│   └── soc-dashboard-complete.png  ← SS-05
+├── 04-Alerts/
+│   └── triggered-alert.png         ← SS-06
+├── 05-Incident-Report/
+│   ├── incident-timeline.png       ← SS-08
+│   └── incident-report.md
+└── Project-Report.md</code></pre>
+
+    <div class="warn">
+      <div class="warn-lbl">⚠ Important — document the SPL queries themselves</div>
+      Don't just screenshot the results — also screenshot or save the SPL query text. Employers want to see that you <strong>wrote</strong> the detection logic, not just ran a pre-built query.
+    </div>
+  </div>
+
+  <!-- ═══ S13 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s13"></span>
+    <div class="slabel">13 — Completion</div>
+    <h2>Project Completion Checklist &amp; Portfolio Summary</h2>
+
+    <h3>Completion Checklist</h3>
+    <ul class="cl">
+      <li>Splunk Enterprise installed and accessible at localhost:8000</li>
+      <li>Sysmon installed with SwiftOnSecurity config on Windows VM</li>
+      <li>Splunk Universal Forwarder shipping logs from Windows VM to Splunk</li>
+      <li>Windows Security, Sysmon, and System logs all indexed in Splunk</li>
+      <li>Brute force attack simulated with Hydra from Kali Linux</li>
+      <li>Port scan, lateral movement, and suspicious PowerShell attacks simulated</li>
+      <li>All 5 SPL detection rules written, tested, and saved as reports</li>
+      <li>SOC dashboard built with 6 panels showing real attack data</li>
+      <li>At least 2 alerts configured and confirmed firing on attack simulation</li>
+      <li>Full incident investigation documented for the brute force attack</li>
+      <li>All 10 required screenshots captured and saved in organised folders</li>
+      <li>Incident report written with all required fields completed</li>
+    </ul>
+
+    <h3>Expected Outcomes Achieved</h3>
+    <div class="outg">
+      <div class="outc">
+        <div class="out-title">Working SIEM Dashboard</div>
+        <div class="out-desc">Live SOC-style dashboard with 6+ detection panels showing real attack data</div>
+      </div>
+      <div class="outc">
+        <div class="out-title">5 Detection Rules</div>
+        <div class="out-desc">SPL queries for brute force, lateral movement, PowerShell, port scanning, and file drops</div>
+      </div>
+      <div class="outc">
+        <div class="out-title">Incident Report</div>
+        <div class="out-desc">Full documented incident from attack simulation through detection and response</div>
+      </div>
+      <div class="outc">
+        <div class="out-title">Alert Configuration</div>
+        <div class="out-desc">Email/Triggered alerts for critical severity events with 5-minute detection window</div>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO SUMMARY -->
+    <div class="pbox">
+      <div class="pbox-title">Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</div>
+
+      <div class="pver">
+        <button class="cbtn" onclick="copyText('short')">Copy</button>
+        <div class="pvlbl">Short Version — Resume bullet point</div>
+        <p id="short">Built a fully functional Splunk SIEM from scratch, ingesting Windows Security and Sysmon logs from a virtualised enterprise environment. Wrote 5 SPL detection rules identifying brute-force attacks, lateral movement, suspicious PowerShell execution, port scanning, and malware file drops. Built a 6-panel SOC dashboard and configured real-time alerts — simulating attacks from Kali Linux to validate every detection rule end-to-end.</p>
+      </div>
+
+      <div class="pver" style="margin-top:14px">
+        <button class="cbtn" onclick="copyText('medium')">Copy</button>
+        <div class="pvlbl">Medium Version — LinkedIn project description</div>
+        <p id="medium">Project: Splunk SIEM Dashboard — Threat Detection & Incident Response Lab
+
+Designed and built a complete SIEM environment using Splunk Enterprise free tier, ingesting telemetry from a Windows VM instrumented with Sysmon (SwiftOnSecurity configuration) and the Splunk Universal Forwarder.
+
+Detection rules written in SPL:
+— Rule 01: Brute Force — 5+ failed logins (EventCode 4625) from same source in 5 minutes
+— Rule 02: Lateral Movement — account logging into 3+ different hosts via network logon
+— Rule 03: Suspicious PowerShell — encoded commands, IEX, hidden window execution (Sysmon EventID 1)
+— Rule 04: Port Scan Detection — single IP connecting to 10+ ports within 60 seconds (Sysmon EventID 3)
+— Rule 05: Malware File Drop — executables and scripts written to Temp directories (Sysmon EventID 11)
+
+Validated each rule by simulating real attacks from Kali Linux: Hydra brute-force against RDP, Nmap port scanning, lateral movement simulation, and suspicious PowerShell command chains.
+
+Deliverables: 6-panel SOC dashboard (Splunk Dashboard Studio), 2 configured real-time alerts, full incident investigation report documenting the brute-force attack from detection through root cause and remediation recommendations.
+
+Tools: Splunk Enterprise · SPL · Sysmon · Universal Forwarder · Kali Linux · Hydra · Nmap · Windows Event Logs</p>
+      </div>
+
+      <div style="margin-top:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;">
+        <div class="pvlbl">Skills Demonstrated</div>
+        <div class="tagrow">
+          <span class="stag">Splunk Enterprise</span>
+          <span class="stag">SPL</span>
+          <span class="stag">SIEM</span>
+          <span class="stag">Sysmon</span>
+          <span class="stag">Log Analysis</span>
+          <span class="stag">Threat Detection</span>
+          <span class="stag">Windows Event Logs</span>
+          <span class="stag">Brute Force Detection</span>
+          <span class="stag">Lateral Movement</span>
+          <span class="stag">Incident Response</span>
+          <span class="stag">SOC Dashboard</span>
+          <span class="stag">Alert Configuration</span>
+          <span class="stag">Kali Linux</span>
+          <span class="stag">Hydra</span>
+          <span class="stag">Universal Forwarder</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .container -->
+
+<footer>
+  <a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; <span>Senior Cyber Security Engineer</span> &nbsp;·&nbsp; Mumbai, India
+</footer>
+
+<!-- JAVASCRIPT — exact from index.html -->
+<script>
+// CURSOR — exact from index.html
+const cur = document.getElementById('cur');
+const curR = document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;cur.style.left=mx+'px';cur.style.top=my+'px';curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button,.stag,.stat,.step,.tc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';cur.style.background='#00d4ff';curR.style.width='52px';curR.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';cur.style.background='#00e5a0';curR.style.width='36px';curR.style.height='36px';});
+});
+
+// MATRIX RAIN — exact from index.html
+(function(){
+  const cv=document.getElementById('matrix-canvas'),ctx=cv.getContext('2d');
+  let W,H,cols,drops;
+  const ch='01アイウエオカキクケコサシスセソタチツテトナニヌネノ'.split('');
+  function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cols=Math.floor(W/18);drops=Array(cols).fill(0).map(()=>Math.random()*-80);}
+  function draw(){ctx.fillStyle='rgba(2,6,8,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<cols;i++){const c=ch[Math.floor(Math.random()*ch.length)];ctx.fillStyle=Math.random()>.96?'#ffffff':'#00e5a0';ctx.globalAlpha=Math.random()*.5+.3;ctx.font='13px monospace';ctx.fillText(c,i*18,drops[i]*18);if(drops[i]*18>H&&Math.random()>.975)drops[i]=0;drops[i]+=.4;}ctx.globalAlpha=1;}
+  init();setInterval(draw,55);window.addEventListener('resize',init);
+})();
+
+// PARTICLES — exact from index.html
+(function(){
+  const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');
+  let W,H;const pts=[];
+  function P(){this.reset=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.35+.1;this.life=Math.random()*300+200;this.age=0;};this.reset();}
+  P.prototype.upd=function(){this.x+=this.vx;this.y+=this.vy;this.age++;if(this.age>this.life||this.x<0||this.x>W||this.y<0||this.y>H)this.reset();};
+  P.prototype.drw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(0,229,160,'+this.a+')';ctx.fill();};
+  function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;if(!pts.length)for(let i=0;i<100;i++)pts.push(new P());}
+  function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,229,160,'+(0.07*(1-d/110))+')';ctx.lineWidth=.5;ctx.stroke();}}pts.forEach(p=>{p.upd();p.drw();});requestAnimationFrame(draw);}
+  init();draw();window.addEventListener('resize',init);
+})();
+
+// READING PROGRESS
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);
+  document.getElementById('prog').style.width=(s*100)+'%';
+},{passive:true});
+
+// SCROLL REVEAL — exact from index.html
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*65);});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// COPY BUTTONS
+function copyText(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    const btn=el.parentElement.querySelector('.cbtn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+</script>
 </body>
 </html>
