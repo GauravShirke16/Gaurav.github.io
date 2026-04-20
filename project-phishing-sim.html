@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 03 — Phishing Simulation & Awareness Report | Gaurav Shirke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;
+  --green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;
+  --amber:#f5a623;--red:#ff3b5c;--text:#b8cdd8;--muted:#4a6572;--border:#112030;
+  --glow:0 0 20px rgba(0,229,160,0.4),0 0 40px rgba(0,229,160,0.2);
+  --font-d:'Orbitron',sans-serif;--font-m:'Share Tech Mono',monospace;--font-b:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--font-b);font-size:16px;line-height:1.7;overflow-x:hidden;cursor:none;}
+.cursor{width:12px;height:12px;background:var(--green);border-radius:50%;position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s,background .2s;}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(0,229,160,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.045;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:0;opacity:.7;pointer-events:none;}
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.scanlines{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;}
+.vignette{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.65) 100%);pointer-events:none;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));z-index:2000;transition:width .1s;width:0%;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(5,13,16,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,160,.1);}
+.nav-logo{font-family:var(--font-m);font-size:14px;color:var(--green);text-decoration:none;}
+.nav-logo .at{color:var(--cyan);}.nav-logo .pr{color:var(--muted);}
+.nav-back{font-family:var(--font-m);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .3s;position:relative;}
+.nav-back::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--green);transform:scaleX(0);transition:transform .3s;}
+.nav-back:hover{color:var(--green);}.nav-back:hover::after{transform:scaleX(1);}
+.nav-st{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.sdot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.6);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+.container{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:80px 48px 100px;}
+.crumb{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.crumb a{color:var(--green);text-decoration:none;}
+.ptag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--amber);border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.07);padding:5px 14px;border-radius:2px;margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;}
+h1{font-family:var(--font-d);font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:16px;letter-spacing:.02em;}
+h1 em{font-style:normal;color:var(--green);}
+.pmeta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.pill{font-family:var(--font-m);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+.pill.g{border-color:rgba(0,229,160,.3);color:var(--green);background:rgba(0,229,160,.07);}
+.pill.a{border-color:rgba(245,166,35,.3);color:var(--amber);background:rgba(245,166,35,.07);}
+.sbanner{display:flex;align-items:flex-start;gap:14px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px 22px;margin-bottom:48px;font-size:14px;color:var(--text);}
+.sbdot{width:9px;height:9px;background:var(--amber);border-radius:50%;flex-shrink:0;margin-top:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:56px;}
+.toc-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
+.toc ol{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:tc;}
+.toc li{counter-increment:tc;display:flex;align-items:baseline;gap:10px;font-size:14px;}
+.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--font-m);font-size:11px;color:var(--muted);flex-shrink:0;}
+.toc a{color:var(--text);text-decoration:none;transition:color .2s;}
+.toc a:hover{color:var(--green);}
+.sec{margin-bottom:64px;}
+.anc{display:block;height:80px;margin-top:-80px;visibility:hidden;}
+.slabel{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.slabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,160,.3),transparent);}
+h2{font-family:var(--font-d);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
+h3{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
+h4{font-family:var(--font-m);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
+p{font-size:15px;color:var(--text);opacity:.9;margin-bottom:14px;}
+strong{color:#fff;font-weight:600;}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 22px;overflow-x:auto;margin:18px 0;}
+code{font-family:var(--font-m);font-size:12.5px;color:var(--green);line-height:1.65;}
+pre code{color:var(--green);}
+p code,li code,.sd code{font-family:var(--font-m);font-size:12px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:2px 6px;color:var(--green);}
+.cm{color:var(--muted);}
+.exp{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.exp-lbl{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.warn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.warn-lbl{font-family:var(--font-m);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tip{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.tip-lbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tw{overflow-x:auto;margin:20px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:var(--font-m);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
+td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,229,160,.025);}
+.steps{display:flex;flex-direction:column;gap:2px;margin:18px 0;}
+.step{display:flex;gap:18px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:18px 22px;transition:border-color .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden;}
+.step::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green),var(--cyan));opacity:0;transition:opacity .3s;}
+.step:hover{border-color:rgba(0,229,160,.3);transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,0,0,.35);}
+.step:hover::before{opacity:1;}
+.sn{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
+.sb{flex:1;}.st2{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px;}
+.sd{font-size:14px;color:var(--muted);line-height:1.65;}
+.sd code{font-family:var(--font-m);font-size:11px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:1px 5px;color:var(--green);}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.tc{background:var(--bg);padding:14px 16px;transition:background .3s;}
+.tc:hover{background:var(--bg2);}
+.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
+.tcd{font-size:11px;color:var(--muted);font-family:var(--font-m);}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.metric{background:var(--bg);padding:18px 16px;text-align:center;transition:background .3s;}
+.metric:hover{background:var(--bg2);}
+.metric-num{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--green);line-height:1;text-shadow:0 0 18px rgba(0,229,160,.5);}
+.metric-num.red{color:var(--red);text-shadow:0 0 18px rgba(255,59,92,.4);}
+.metric-num.amber{color:var(--amber);text-shadow:0 0 18px rgba(245,166,35,.4);}
+.metric-lbl{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:5px;}
+.cl{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.cl li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--text);}
+.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--font-m);}
+.ssnote{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--amber);background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:2px;padding:4px 10px;margin:8px 0;}
+.pbox{background:var(--bg);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:32px;position:relative;overflow:hidden;margin-top:40px;}
+.pbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
+.pbox-title{font-family:var(--font-d);font-size:15px;color:#fff;margin-bottom:16px;}
+.pver{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:14px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
+.pvlbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.cbtn{position:absolute;top:12px;right:12px;font-family:var(--font-m);font-size:11px;padding:5px 12px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.cbtn:hover{background:rgba(0,229,160,.2);}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.stag{font-family:var(--font-m);font-size:12px;padding:5px 12px;background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.15);border-radius:2px;color:var(--text);cursor:none;transition:all .25s;position:relative;overflow:hidden;}
+.stag::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,160,.1),transparent);opacity:0;transition:opacity .25s;}
+.stag:hover{border-color:var(--green);color:var(--green);transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(0,229,160,.3);}
+.stag:hover::before{opacity:1;}
+footer{position:relative;z-index:10;text-align:center;padding:26px 48px;border-top:1px solid var(--border);font-family:var(--font-m);font-size:12px;color:var(--muted);}
+footer a{color:var(--green);text-decoration:none;}footer span{color:var(--green);}
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:rgba(0,229,160,.3);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--green);}
+@media(max-width:768px){nav{padding:0 20px;}.container{padding:70px 20px 80px;}}
+
+/* ═══════════ SCREENSHOT MOCKUP SYSTEM ═══════════ */
+.ss-wrap{margin:32px 0;}
+.ss-heading{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.ss-heading::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,212,255,.25),transparent);}
+.ss-caption{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding:0 4px;}
+.ss-cap-text{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.ss-cap-num{font-family:var(--font-m);font-size:11px;color:var(--cyan);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:2px;padding:2px 8px;}
+
+/* Browser chrome wrapper */
+.browser{border:1px solid rgba(0,229,160,.18);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 1px rgba(0,229,160,.06);}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#0a1520;border-bottom:1px solid #1a2a3a;}
+.b-dot{width:11px;height:11px;border-radius:50%;}
+.b-addr{flex:1;margin:0 12px;background:#0d1e2e;border:1px solid #1e3248;border-radius:4px;padding:5px 12px;font-family:monospace;font-size:11px;color:#5a7a90;display:flex;align-items:center;gap:6px;}
+.b-addr .lock{color:#00c9a7;font-size:10px;}
+.browser-body{background:#fff;}
+
+/* ═══════════ GOPHISH DASHBOARD STYLES ═══════════ */
+.gp{background:#111c2a;min-height:420px;}
+.gp-sidebar{width:200px;background:#0c1622;border-right:1px solid #1a2a3a;padding:16px 0;position:absolute;top:0;bottom:0;}
+.gp-layout{display:flex;position:relative;min-height:420px;}
+.gp-side{width:200px;background:#0c1622;border-right:1px solid #1a2a3a;flex-shrink:0;}
+.gp-side-logo{padding:18px 20px 14px;border-bottom:1px solid #1a2a3a;margin-bottom:8px;}
+.gp-side-logo span{font-family:monospace;font-size:15px;font-weight:700;color:#00c9a7;letter-spacing:-.5px;}
+.gp-nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-family:monospace;font-size:12px;color:#5a7a90;cursor:default;transition:all .2s;}
+.gp-nav-item:hover,.gp-nav-item.active{background:rgba(0,201,167,.08);color:#00c9a7;border-right:2px solid #00c9a7;}
+.gp-nav-icon{font-size:13px;width:16px;text-align:center;}
+.gp-main{flex:1;padding:22px 24px;overflow:hidden;}
+.gp-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.gp-page-title{font-family:monospace;font-size:16px;color:#d0e0f0;font-weight:700;}
+.gp-btn{font-family:monospace;font-size:11px;padding:7px 14px;background:#00c9a7;color:#000;border-radius:3px;font-weight:700;}
+.gp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.gp-stat-card{background:#0f1e2e;border:1px solid #1a2d42;border-radius:6px;padding:14px 16px;text-align:center;}
+.gp-stat-card:hover{border-color:rgba(0,201,167,.3);}
+.gp-stat-val{font-family:monospace;font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.gp-stat-label{font-family:monospace;font-size:10px;color:#5a7a90;text-transform:uppercase;letter-spacing:.06em;}
+.gp-stat-pct{font-family:monospace;font-size:11px;color:#5a7a90;margin-top:2px;}
+.gp-table-wrap{background:#0f1e2e;border:1px solid #1a2d42;border-radius:6px;overflow:hidden;}
+.gp-table-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid #1a2d42;background:#0c1a28;}
+.gp-table-title{font-family:monospace;font-size:12px;color:#8aa8c0;text-transform:uppercase;letter-spacing:.08em;}
+.gp-tbl{width:100%;border-collapse:collapse;font-size:12px;font-family:monospace;}
+.gp-tbl th{background:#0a1620;color:#5a7a90;padding:8px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid #1a2d42;}
+.gp-tbl td{padding:9px 14px;color:#90aac0;border-bottom:1px solid rgba(26,45,66,.5);}
+.gp-tbl tr:last-child td{border-bottom:none;}
+.gp-tbl tr:hover td{background:rgba(0,201,167,.04);}
+.gp-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;font-family:monospace;}
+.gp-badge.sent{background:rgba(90,130,180,.15);color:#6a9ad0;}
+.gp-badge.opened{background:rgba(245,166,35,.12);color:#f5a623;}
+.gp-badge.clicked{background:rgba(255,100,50,.15);color:#ff6432;}
+.gp-badge.submitted{background:rgba(255,59,92,.15);color:#ff3b5c;border:1px solid rgba(255,59,92,.25);}
+
+/* ═══════════ PHISHING EMAIL STYLES ═══════════ */
+.em-wrap{background:#f0f2f5;padding:24px;font-family:'Helvetica Neue',Arial,sans-serif;}
+.em-card{background:#fff;border-radius:4px;max-width:580px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+.em-topbar{background:#1a1a2e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+.em-folder{font-family:monospace;font-size:11px;color:#7a8aaa;}
+.em-actions{display:flex;gap:8px;}
+.em-action{font-family:monospace;font-size:10px;color:#5a6a8a;padding:3px 8px;background:#2a3a4e;border-radius:2px;}
+.em-meta{padding:16px 20px;border-bottom:1px solid #e8ecf0;}
+.em-row{display:flex;gap:10px;margin-bottom:5px;font-size:12px;}
+.em-field{color:#8895a7;min-width:36px;flex-shrink:0;}
+.em-val{color:#374151;}
+.em-val.subj{color:#111827;font-weight:700;font-size:14px;}
+.em-val.warn-subj{color:#dc2626;}
+.em-body{padding:0;}
+.em-header-banner{background:#1a56db;padding:16px 24px;display:flex;align-items:center;gap:12px;}
+.em-logo-box{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+.em-logo-name{color:#fff;font-size:14px;font-weight:700;}
+.em-content{padding:24px;}
+.em-title{font-size:20px;font-weight:700;color:#111827;margin-bottom:12px;line-height:1.3;}
+.em-text{font-size:13px;color:#374151;line-height:1.7;margin-bottom:14px;}
+.em-cta-wrap{text-align:center;margin:20px 0;}
+.em-cta{display:inline-block;background:#1a56db;color:#fff;padding:11px 28px;border-radius:4px;font-size:14px;font-weight:700;text-decoration:none;}
+.em-fine{font-size:11px;color:#6b7280;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;}
+.em-footer-strip{background:#f9fafb;padding:12px 20px;border-top:1px solid #e5e7eb;border-radius:0 0 4px 4px;font-size:10px;color:#9ca3af;text-align:center;}
+/* Indicator annotations */
+.ind-panel{background:#1a0808;border:1px solid rgba(255,59,92,.25);border-radius:0 0 4px 4px;padding:14px 20px;}
+.ind-title{font-family:var(--font-m);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ind-title::after{content:'';flex:1;height:1px;background:rgba(255,59,92,.2);}
+.ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ind-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#e0b0b0;font-family:var(--font-m);background:rgba(255,59,92,.05);border:1px solid rgba(255,59,92,.12);border-radius:3px;padding:7px 10px;}
+.ind-num{color:var(--red);font-weight:700;min-width:16px;font-size:11px;}
+
+/* ═══════════ LANDING PAGE STYLES ═══════════ */
+.lp-wrap{background:#e8eaf0;padding:32px 20px;display:flex;justify-content:center;align-items:center;min-height:380px;}
+.lp-card{background:#fff;border-radius:8px;padding:32px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.lp-logo-row{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.lp-logo-icon{width:40px;height:40px;background:#1a56db;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:16px;}
+.lp-company{font-size:18px;font-weight:700;color:#1e293b;}
+.lp-company sub{font-size:11px;font-weight:400;color:#94a3b8;display:block;line-height:1;}
+.lp-heading{font-size:22px;font-weight:700;color:#0f172a;margin-bottom:5px;}
+.lp-sub{font-size:13px;color:#64748b;margin-bottom:22px;line-height:1.5;}
+.lp-field{margin-bottom:14px;}
+.lp-label{display:block;font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.lp-input{width:100%;padding:10px 13px;border:2px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;background:#f8fafc;outline:none;}
+.lp-input:focus{border-color:#1a56db;background:#fff;}
+.lp-input.prefill{background:#f0f4ff;border-color:#c7d5f8;color:#1a56db;font-weight:600;}
+.lp-submit{width:100%;padding:11px;background:#1a56db;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:default;margin-top:4px;letter-spacing:.02em;}
+.lp-divider{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:11px;color:#94a3b8;}
+.lp-divider::before,.lp-divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+.lp-secure{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:#94a3b8;margin-top:14px;}
+/* Red flags overlaid */
+.lp-warning-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:0 0 8px 8px;padding:11px 16px;margin-top:16px;}
+.lp-warning-title{font-family:var(--font-m);font-size:10px;color:#dc2626;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.lp-flag{display:flex;align-items:flex-start;gap:7px;font-size:11px;color:#7f1d1d;margin-bottom:4px;font-family:monospace;}
+.lp-flag-dot{width:5px;height:5px;background:#dc2626;border-radius:50%;flex-shrink:0;margin-top:4px;}
+
+/* ═══════════ RESULTS CHART STYLES ═══════════ */
+.chart-bg{background:#0d1b2a;padding:24px;}
+.chart-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.chart-title{font-family:monospace;font-size:13px;color:#d0e4f4;font-weight:700;}
+.chart-sub{font-family:monospace;font-size:10px;color:#4a6a8a;}
+.chart-divider{height:1px;background:linear-gradient(90deg,rgba(0,201,167,.3),transparent);margin:14px 0;}
+.funnel-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.funnel-label{font-family:monospace;font-size:11px;color:#7a9ab0;width:80px;text-align:right;flex-shrink:0;}
+.funnel-track{flex:1;height:28px;background:#0f2236;border-radius:3px;overflow:hidden;position:relative;}
+.funnel-fill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:12px;font-family:monospace;font-size:11px;font-weight:700;color:#fff;position:relative;}
+.funnel-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:rgba(255,255,255,.3);}
+.funnel-pct{font-family:monospace;font-size:11px;color:#5a7a90;width:42px;flex-shrink:0;text-align:right;}
+/* Role breakdown mini bars */
+.role-section{margin-top:18px;}
+.role-title{font-family:monospace;font-size:10px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+.role-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.role-label{font-family:monospace;font-size:10px;color:#6a8aa0;width:88px;text-align:right;flex-shrink:0;}
+.role-track{flex:1;height:18px;background:#0f2236;border-radius:2px;overflow:hidden;}
+.role-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:8px;font-family:monospace;font-size:10px;font-weight:700;color:#fff;}
+/* Donut simulation with CSS */
+.donut-wrap{display:flex;gap:24px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid #1a2d42;}
+.donut-legend{display:flex;flex-direction:column;gap:6px;}
+.legend-item{display:flex;align-items:center;gap:7px;font-family:monospace;font-size:11px;color:#7a9ab0;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-val{color:#c0d8ee;font-weight:700;margin-left:auto;min-width:28px;text-align:right;}
+
+/* ═══════════ AWARENESS REPORT PDF STYLES ═══════════ */
+.pdf-wrap{background:#e8e8e8;padding:20px;font-family:'Georgia',serif;}
+.pdf-page{background:#fff;max-width:640px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.25);}
+.pdf-header{background:#c02040;padding:24px 30px;display:flex;justify-content:space-between;align-items:flex-end;}
+.pdf-header-left h2{font-size:18px;color:#fff;font-weight:700;font-family:'Georgia',serif;letter-spacing:.01em;}
+.pdf-header-left p{font-size:11px;color:rgba(255,255,255,.75);margin-top:3px;font-family:monospace;}
+.pdf-header-right{text-align:right;}
+.pdf-header-right .classification{font-family:monospace;font-size:10px;background:rgba(255,255,255,.2);color:#fff;padding:3px 8px;border-radius:2px;letter-spacing:.1em;}
+.pdf-header-right .date{font-family:monospace;font-size:10px;color:rgba(255,255,255,.6);margin-top:4px;}
+.pdf-top-strip{background:#8a0030;height:4px;}
+.pdf-body{padding:24px 30px;}
+.pdf-exec-summary{background:#fff8f8;border-left:4px solid #c02040;padding:14px 18px;margin-bottom:20px;border-radius:0 4px 4px 0;}
+.pdf-exec-title{font-size:11px;font-weight:700;color:#c02040;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-family:monospace;}
+.pdf-exec-text{font-size:12px;color:#374151;line-height:1.6;}
+.pdf-section-title{font-size:13px;font-weight:700;color:#1a1a2e;border-bottom:2px solid #c02040;padding-bottom:5px;margin:18px 0 10px;font-family:'Georgia',serif;text-transform:uppercase;letter-spacing:.04em;}
+.pdf-finding-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;padding:8px 12px;background:#fafafa;border-radius:3px;border:1px solid #f0f0f0;}
+.pdf-finding-icon{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;margin-top:1px;}
+.pdf-finding-text{font-size:12px;color:#374151;line-height:1.5;flex:1;}
+.pdf-badge{display:inline-block;padding:1px 7px;border-radius:2px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:middle;font-family:monospace;}
+.pdf-badge.crit{background:#fef2f2;color:#c02040;border:1px solid #fca5a5;}
+.pdf-badge.high{background:#fff7ed;color:#c05500;border:1px solid #fdba74;}
+.pdf-badge.med{background:#fffbeb;color:#856e00;border:1px solid #fcd34d;}
+.pdf-metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.pdf-metric-cell{background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:10px;text-align:center;}
+.pdf-metric-n{font-size:22px;font-weight:700;font-family:monospace;}
+.pdf-metric-l{font-size:9px;color:#94a3b8;font-family:monospace;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.pdf-remed-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;font-size:12px;color:#374151;}
+.pdf-remed-num{width:18px;height:18px;border-radius:50%;background:#c02040;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;font-family:monospace;}
+.pdf-footer{background:#1a1a2e;padding:10px 30px;display:flex;justify-content:space-between;align-items:center;}
+.pdf-footer-text{font-family:monospace;font-size:9px;color:#5a6a8a;}
+.pdf-page-num{font-family:monospace;font-size:9px;color:#5a6a8a;}
+</style>
+</head>
+<body>
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="progress" id="prog"></div>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+<nav>
+  <a href="index.html" class="nav-logo">Gaurav<span class="at">@</span>Security<span class="pr">:~$</span></a>
+  <div style="display:flex;align-items:center;gap:32px;">
+    <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+    <div class="nav-st"><div class="sdot"></div><span>SECURE_CONNECTION</span></div>
+  </div>
+</nav>
+<div class="container">
+  <div class="crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / Phishing Simulation</div>
+  <div class="ptag">Project 03 · Social Engineering</div>
+  <h1>Phishing Simulation <em>&amp; Awareness Report</em></h1>
+  <div class="pmeta">
+    <span class="pill a">Status: Planned</span>
+    <span class="pill">Social Engineering</span><span class="pill">Awareness Training</span>
+    <span class="pill">Email Security</span><span class="pill">Incident Response</span>
+    <span class="pill g">GoPhish · Mailtrap · Python · MITRE ATT&amp;CK</span>
+  </div>
+  <div class="sbanner">
+    <div class="sbdot"></div>
+    <div>Complete phishing simulation guide — from GoPhish setup to a professional awareness report with real campaign metrics. All simulations are conducted in a controlled, consensual test environment only. No real corporate inboxes are targeted.</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc reveal">
+    <div class="toc-title">Table of Contents</div>
+    <ol class="toc">
+      <li><a href="#s1">Project Overview &amp; Objectives</a></li>
+      <li><a href="#s2">What Is Phishing? Why It Matters</a></li>
+      <li><a href="#s3">Requirements &amp; Tools</a></li>
+      <li><a href="#s4">Install &amp; Configure GoPhish</a></li>
+      <li><a href="#s5">Set Up Mailtrap (Safe Email Relay)</a></li>
+      <li><a href="#s6">Design the Phishing Email Template</a></li>
+      <li><a href="#s7">Build the Credential Harvesting Landing Page</a></li>
+      <li><a href="#s8">Create Sending Profile &amp; Target Group</a></li>
+      <li><a href="#s9">Launch the Campaign &amp; Track Real-Time Results</a></li>
+      <li><a href="#s10">Analyse Campaign Results with Python</a></li>
+      <li><a href="#s11">Phishing Indicator Analysis — 8 Red Flags</a></li>
+      <li><a href="#s12">Write the Professional Awareness Report</a></li>
+      <li><a href="#s13">Documentation &amp; Screenshot Requirements</a></li>
+      <li><a href="#s14">Project Completion Checklist &amp; Portfolio Summary</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══ S1 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s1"></span>
+    <div class="slabel">01 — Overview</div>
+    <h2>Project Overview &amp; Objectives</h2>
+    <p>Phishing is the <strong>#1 attack vector</strong> used in over 80% of all reported security incidents globally. It exploits human psychology rather than technical vulnerabilities — meaning no firewall, no EDR, and no SIEM can stop a user who clicks a convincing malicious link.</p>
+    <p>This project runs a <strong>safe, controlled phishing simulation</strong> using GoPhish and Mailtrap, measures real susceptibility rates across a consenting test group, and produces a professional security awareness report with concrete, prioritised remediation recommendations — exactly what a security consultant delivers to clients after a phishing assessment engagement.</p>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-num">50</div><div class="metric-lbl">Emails Sent</div></div>
+      <div class="metric"><div class="metric-num amber">62%</div><div class="metric-lbl">Open Rate</div></div>
+      <div class="metric"><div class="metric-num red">38%</div><div class="metric-lbl">Click Rate</div></div>
+      <div class="metric"><div class="metric-num red">18%</div><div class="metric-lbl">Creds Submitted</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-family:var(--font-m);">* Target simulation metrics — replaced with real results once campaign completes.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Skill</th><th>Tool / Method</th></tr></thead>
+      <tbody>
+        <tr><td>Phishing campaign setup and management</td><td>GoPhish Framework v0.12+</td></tr>
+        <tr><td>Safe email delivery in test environment</td><td>Mailtrap SMTP Relay</td></tr>
+        <tr><td>Email template design</td><td>GoPhish HTML/CSS Template Editor</td></tr>
+        <tr><td>Credential harvesting page</td><td>GoPhish Landing Pages</td></tr>
+        <tr><td>Results analysis and charting</td><td>Python · pandas · matplotlib</td></tr>
+        <tr><td>Phishing indicator identification</td><td>Manual analysis · MITRE ATT&amp;CK</td></tr>
+        <tr><td>Security awareness report</td><td>Markdown → PDF</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S2 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s2"></span>
+    <div class="slabel">02 — Background</div>
+    <h2>What Is Phishing? Why It Matters</h2>
+    <p>Phishing is <strong>social engineering via email</strong> — crafting a message that appears to come from a trusted source and manipulating the recipient into taking an action: clicking a link, downloading a file, or entering credentials.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Type</th><th>Description</th><th>This Project</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Phishing</strong></td><td>Mass emails to many recipients</td><td>✅ Simulated</td></tr>
+        <tr><td><strong>Spear Phishing</strong></td><td>Targeted at named individuals</td><td>✅ Template approach</td></tr>
+        <tr><td><strong>Vishing</strong></td><td>Voice/phone social engineering</td><td>Out of scope</td></tr>
+        <tr><td><strong>Smishing</strong></td><td>SMS-based phishing</td><td>Out of scope</td></tr>
+        <tr><td><strong>Whaling</strong></td><td>Executives and high-value targets</td><td>Referenced in report</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tip"><div class="tip-lbl">MITRE ATT&amp;CK Mapping</div>
+    This project simulates <strong>T1566.001</strong> (Spearphishing Link) and <strong>T1566.002</strong> (Spearphishing Attachment) — both under the Initial Access tactic. Including this mapping elevates your awareness report to professional threat-intelligence quality.</div>
+  </div>
+
+  <!-- ═══ S3 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s3"></span>
+    <div class="slabel">03 — Requirements</div>
+    <h2>Requirements &amp; Tools</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Component</th><th>Specification</th></tr></thead>
+      <tbody>
+        <tr><td>OS</td><td>Windows 10/11, macOS, or Ubuntu 20.04+ (GoPhish runs on all)</td></tr>
+        <tr><td>RAM</td><td>4 GB minimum (GoPhish is very lightweight)</td></tr>
+        <tr><td>Disk Space</td><td>2 GB free</td></tr>
+        <tr><td>Internet</td><td>Required for Mailtrap SMTP relay</td></tr>
+        <tr><td>Test email accounts</td><td>2–5 of your own email addresses for the test group</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Software Downloads (All Free)</h3>
+    <div class="tgrid">
+      <div class="tc"><div class="tcn">GoPhish</div><div class="tcd">github.com/gophish/gophish</div></div>
+      <div class="tc"><div class="tcn">Mailtrap</div><div class="tcd">mailtrap.io — free tier</div></div>
+      <div class="tc"><div class="tcn">Python 3.x</div><div class="tcd">python.org</div></div>
+      <div class="tc"><div class="tcn">pandas + matplotlib</div><div class="tcd">pip install pandas matplotlib</div></div>
+    </div>
+    <div class="warn"><div class="warn-lbl">⚠ Ethical &amp; Legal Note — Read Before Proceeding</div>
+    <strong>Only send simulation emails to people who have given explicit written consent.</strong> Sending phishing emails without consent is a criminal offence under computer fraud laws in most jurisdictions. For this project: use only your own email addresses, or obtain written consent from participants beforehand. Never test real corporate environments without a signed penetration testing agreement.</div>
+  </div>
+
+  <!-- ═══ S4 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s4"></span>
+    <div class="slabel">04 — GoPhish Setup</div>
+    <h2>Install &amp; Configure GoPhish</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Download GoPhish from GitHub</div><div class="sd">Go to <code>https://github.com/gophish/gophish/releases</code> → download latest for your OS. Extract the zip — no installation needed.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Run GoPhish</div><div class="sd"><strong>Linux/macOS:</strong> <code>chmod +x gophish && ./gophish</code><br><strong>Windows:</strong> Double-click <code>gophish.exe</code>. It prints a temporary admin password in the terminal — copy it.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Login to admin panel</div><div class="sd">Open browser → <code>https://localhost:3333</code> (accept self-signed cert warning) → login with <code>admin</code> and the printed password.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Change the default password immediately</div><div class="sd">Top-right dropdown → <strong>Change Password</strong> → set a strong password.</div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>GoPhish dashboard loads. Navigation shows: Dashboard, Campaigns, Users &amp; Groups, Email Templates, Landing Pages, Sending Profiles. ✅</div>
+
+    <!-- ════ SCREENSHOT 01 — GOPHISH DASHBOARD ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 01 — GoPhish Admin Dashboard (Live Campaign View)</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span class="lock">🔒</span> https://localhost:3333/campaigns</div>
+        </div>
+        <div class="browser-body">
+          <div class="gp-layout">
+            <div class="gp-side">
+              <div class="gp-side-logo"><span>GoPhish</span></div>
+              <div class="gp-nav-item active"><span class="gp-nav-icon">📊</span> Dashboard</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">📧</span> Campaigns</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">👥</span> Users &amp; Groups</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">✉️</span> Email Templates</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">🌐</span> Landing Pages</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">📤</span> Sending Profiles</div>
+              <div style="border-top:1px solid #1a2a3a;margin:12px 0;"></div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">⚙️</span> Settings</div>
+              <div class="gp-nav-item"><span class="gp-nav-icon">🔓</span> Logout</div>
+            </div>
+            <div class="gp-main">
+              <div class="gp-topbar">
+                <div class="gp-page-title">Campaign Results — IT Password Reset Simulation A</div>
+                <div class="gp-btn">+ New Campaign</div>
+              </div>
+              <div class="gp-stats">
+                <div class="gp-stat-card"><div class="gp-stat-val" style="color:#6a9ad0">50</div><div class="gp-stat-label">Emails Sent</div><div class="gp-stat-pct">100%</div></div>
+                <div class="gp-stat-card"><div class="gp-stat-val" style="color:#f5a623">31</div><div class="gp-stat-label">Emails Opened</div><div class="gp-stat-pct">62.0%</div></div>
+                <div class="gp-stat-card"><div class="gp-stat-val" style="color:#ff6432">19</div><div class="gp-stat-label">Links Clicked</div><div class="gp-stat-pct">38.0%</div></div>
+                <div class="gp-stat-card"><div class="gp-stat-val" style="color:#ff3b5c">9</div><div class="gp-stat-label">Data Submitted</div><div class="gp-stat-pct">18.0%</div></div>
+              </div>
+              <div class="gp-table-wrap">
+                <div class="gp-table-header">
+                  <div class="gp-table-title">Recent Events</div>
+                  <div style="font-family:monospace;font-size:10px;color:#3a5a74">Updated 14:47:22 · Auto-refresh ON</div>
+                </div>
+                <table class="gp-tbl">
+                  <thead><tr><th>#</th><th>Email</th><th>First Name</th><th>Position</th><th>Status</th><th>IP Address</th><th>Time</th></tr></thead>
+                  <tbody>
+                    <tr><td>1</td><td>g.sharma@example.com</td><td>Gaurav</td><td>Executive</td><td><span class="gp-badge submitted">⚠ Submitted Data</span></td><td>192.168.1.45</td><td>14:23:05</td></tr>
+                    <tr><td>2</td><td>p.mehta@example.com</td><td>Priya</td><td>Manager</td><td><span class="gp-badge clicked">Clicked Link</span></td><td>192.168.1.62</td><td>14:31:18</td></tr>
+                    <tr><td>3</td><td>r.joshi@example.com</td><td>Rahul</td><td>Staff</td><td><span class="gp-badge opened">Email Opened</span></td><td>—</td><td>14:28:42</td></tr>
+                    <tr><td>4</td><td>a.patel@example.com</td><td>Anita</td><td>IT Staff</td><td><span class="gp-badge sent">Email Sent</span></td><td>—</td><td>14:20:00</td></tr>
+                    <tr><td>5</td><td>v.nair@example.com</td><td>Vijay</td><td>Executive</td><td><span class="gp-badge submitted">⚠ Submitted Data</span></td><td>192.168.1.88</td><td>14:26:34</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">GoPhish live campaign dashboard — real-time tracking of opens, clicks and credential submissions by recipient</span>
+        <span class="ss-cap-num">SS-01</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S5 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s5"></span>
+    <div class="slabel">05 — Mailtrap Setup</div>
+    <h2>Set Up Mailtrap (Safe Email Relay)</h2>
+    <p>Mailtrap is a <strong>fake SMTP server</strong> — GoPhish sends emails to it, but they never reach real inboxes. Instead Mailtrap traps them in a virtual inbox so you can preview exactly how the email renders.</p>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Create a free Mailtrap account</div><div class="sd">Go to <code>https://mailtrap.io</code> → Sign Up Free → verify email. No credit card needed.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Get SMTP credentials</div><div class="sd"><strong>Email Testing → Inboxes → My Inbox → SMTP Settings</strong> → select <strong>GoPhish</strong> from the integration dropdown. Copy Host, Port, Username, Password.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Create Sending Profile in GoPhish</div><div class="sd">GoPhish → <strong>Sending Profiles → New Profile</strong>:<br>Name: <code>Mailtrap Test Relay</code><br>SMTP From: <code>it-security@yourcompany.com</code><br>Host: <code>sandbox.smtp.mailtrap.io:2525</code><br>Username &amp; Password: from Mailtrap dashboard</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Send a test email and confirm receipt</div><div class="sd">Click <strong>Send Test Email</strong> → enter your own email → check the Mailtrap inbox. The email should appear within 5 seconds.</div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>Test email appears in Mailtrap inbox. You can inspect HTML source, raw headers, spam score, and preview the email exactly as a recipient would see it. ✅</div>
+  </div>
+  <!-- ═══ S6 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s6"></span>
+    <div class="slabel">06 — Email Template</div>
+    <h2>Design the Phishing Email Template</h2>
+    <p>This template mimics a <strong>corporate IT password reset notice</strong> — the most effective phishing pretext. It uses five psychological triggers: urgency, authority, fear, familiarity, and scarcity.</p>
+    <h3>6.1 Psychological Triggers Used</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Trigger</th><th>How Used</th><th>Why It Works</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Urgency</strong></td><td>"Account locked in 24 hours"</td><td>Bypasses critical thinking — people act fast without analysing</td></tr>
+        <tr><td><strong>Authority</strong></td><td>Appears from IT Security dept</td><td>Recipients trust authority figures and comply without questioning</td></tr>
+        <tr><td><strong>Fear</strong></td><td>"Unusual sign-in activity detected"</td><td>Emotional response overrides logical analysis</td></tr>
+        <tr><td><strong>Familiarity</strong></td><td>Company branding, logo, colours</td><td>Familiar visual identity reduces suspicion significantly</td></tr>
+        <tr><td><strong>Scarcity</strong></td><td>"One-time link expires in 24 hours"</td><td>Creates pressure to act immediately before analysing</td></tr>
+      </tbody>
+    </table></div>
+    <h3>6.2 HTML Email Template Code</h3>
+    <pre><code><span class="cm">&lt;!-- GoPhish Email Template — IT Password Reset Lure --&gt;</span>
+&lt;div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;"&gt;
+
+  &lt;!-- Header bar with company branding --&gt;
+  &lt;div style="background:#1a56db;padding:16px 24px;display:flex;align-items:center;gap:12px;"&gt;
+    &lt;div style="background:rgba(255,255,255,.15);border-radius:6px;
+                padding:6px 10px;color:#fff;font-weight:700;font-size:14px;"&gt;
+      YC
+    &lt;/div&gt;
+    &lt;span style="color:#fff;font-size:15px;font-weight:700;"&gt;YourCompany IT Security&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Email body --&gt;
+  &lt;div style="padding:28px 24px;background:#ffffff;border:1px solid #e5e7eb;"&gt;
+    &lt;h2 style="color:#dc2626;font-size:18px;margin-bottom:14px;"&gt;
+      ⚠ Action Required: Unusual Sign-In Activity Detected
+    &lt;/h2&gt;
+    &lt;p style="color:#374151;font-size:14px;line-height:1.7;margin-bottom:14px;"&gt;
+      Dear {{.FirstName}},
+    &lt;/p&gt;
+    &lt;p style="color:#374151;font-size:14px;line-height:1.7;"&gt;
+      We detected &lt;strong style="color:#dc2626;"&gt;unusual sign-in activity&lt;/strong&gt;
+      on your account from an unrecognised device in &lt;strong&gt;Mumbai, India&lt;/strong&gt;.
+      &lt;strong&gt;Your account access will be suspended within 24 hours&lt;/strong&gt;
+      unless you verify your identity using the link below.
+    &lt;/p&gt;
+    &lt;div style="text-align:center;margin:24px 0;"&gt;
+      &lt;a href="{{.URL}}"
+         style="background:#1a56db;color:#fff;padding:12px 32px;
+                border-radius:4px;text-decoration:none;font-weight:700;
+                font-size:15px;display:inline-block;"&gt;
+        Verify My Account Now
+      &lt;/a&gt;
+    &lt;/div&gt;
+    &lt;p style="color:#6b7280;font-size:12px;text-align:center;"&gt;
+      This secure link expires in &lt;strong&gt;24 hours&lt;/strong&gt;.
+      If you did not request this, contact IT Security at
+      &lt;a href="mailto:security@yourcompany.com"&gt;security@yourcompany.com&lt;/a&gt;
+    &lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div style="background:#f9fafb;padding:12px 24px;border:1px solid #e5e7eb;
+              border-top:none;font-size:10px;color:#9ca3af;text-align:center;"&gt;
+    &amp;copy; 2025 YourCompany Ltd · IT Security Department · Mumbai, India
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+    <!-- ════ SCREENSHOT 02 — PHISHING EMAIL ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 02 — Phishing Email Preview with Annotated Red Flags</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span class="lock">📧</span> Mailtrap Inbox — My Inbox — IT Password Reset Simulation A (1 new)</div>
+        </div>
+        <div class="browser-body">
+          <div class="em-wrap">
+            <div class="em-card">
+              <div class="em-topbar">
+                <div class="em-folder">📥 Inbox · IT Password Reset Simulation A</div>
+                <div class="em-actions">
+                  <div class="em-action">Reply</div>
+                  <div class="em-action">Forward</div>
+                  <div class="em-action">HTML</div>
+                  <div class="em-action">Raw</div>
+                </div>
+              </div>
+              <div class="em-meta">
+                <div class="em-row"><span class="em-field">From:</span><span class="em-val" style="color:#dc2626">⚠ IT Security Dept &lt;it-security@yourcompany-alerts.net&gt; <span style="color:#999;font-size:11px;">[not yourcompany.com — suspicious!]</span></span></div>
+                <div class="em-row"><span class="em-field">To:</span><span class="em-val">Gaurav Sharma &lt;g.sharma@example.com&gt;</span></div>
+                <div class="em-row"><span class="em-field">Date:</span><span class="em-val">Sat, 18 Apr 2025 · 14:20:00 +0530</span></div>
+                <div class="em-row"><span class="em-field">Subject:</span><span class="em-val warn-subj">⚠ Action Required: Unusual Sign-In Activity Detected</span></div>
+              </div>
+              <div class="em-body">
+                <div class="em-header-banner">
+                  <div class="em-logo-box">YC</div>
+                  <span class="em-logo-name">YourCompany IT Security</span>
+                </div>
+                <div class="em-content">
+                  <div class="em-title">⚠ Action Required: Unusual Sign-In Activity Detected</div>
+                  <div class="em-text">Dear Gaurav,</div>
+                  <div class="em-text">We detected <strong style="color:#dc2626">unusual sign-in activity</strong> on your account from an unrecognised device in <strong>Mumbai, India</strong>. <strong>Your account access will be suspended within 24 hours</strong> unless you verify your identity using the secure link below.</div>
+                  <div class="em-cta-wrap"><a href="#" class="em-cta">Verify My Account Now →</a></div>
+                  <div class="em-text" style="font-size:12px;color:#6b7280;text-align:center;">This secure link expires in <strong>24 hours</strong>. If you did not request this, contact IT Security at <span style="color:#1a56db;">security@yourcompany.com</span></div>
+                </div>
+                <div class="em-footer-strip">© 2025 YourCompany Ltd · IT Security Department · Mumbai, India</div>
+              </div>
+              <!-- INDICATOR ANNOTATIONS -->
+              <div class="ind-panel">
+                <div class="ind-title">🔍 Phishing Indicators Identified in This Email</div>
+                <div class="ind-grid">
+                  <div class="ind-item"><span class="ind-num">①</span><span>Sender domain mismatch — <code>yourcompany-alerts.net</code> ≠ <code>yourcompany.com</code></span></div>
+                  <div class="ind-item"><span class="ind-num">②</span><span>Urgency language — "suspended within 24 hours" creates panic</span></div>
+                  <div class="ind-item"><span class="ind-num">③</span><span>Fear trigger — "unusual sign-in activity" with no device/location specifics</span></div>
+                  <div class="ind-item"><span class="ind-num">④</span><span>Suspicious CTA link — hovering reveals IP address, not company domain</span></div>
+                  <div class="ind-item"><span class="ind-num">⑤</span><span>No employee ID or personalised details — generic "Dear Gaurav"</span></div>
+                  <div class="ind-item"><span class="ind-num">⑥</span><span>Requests credential verification via email link — legitimate IT never does this</span></div>
+                  <div class="ind-item"><span class="ind-num">⑦</span><span>No MFA challenge or last-login detail — real alerts include these</span></div>
+                  <div class="ind-item"><span class="ind-num">⑧</span><span>No digital signature (DKIM) — headers show SPF/DKIM fail</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Phishing email in Mailtrap inbox with 8 red flags annotated — used for awareness training</span>
+        <span class="ss-cap-num">SS-02</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S7 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s7"></span>
+    <div class="slabel">07 — Landing Page</div>
+    <h2>Build the Credential Harvesting Landing Page</h2>
+    <p>When recipients click the link, they land on a <strong>fake IT portal login page</strong> that mimics the company's real login portal. GoPhish captures every form submission — recording that the recipient entered credentials, without actually storing real passwords for any legitimate use.</p>
+    <div class="warn"><div class="warn-lbl">⚠ No real credentials are stored dangerously</div>
+    GoPhish records submission events for reporting purposes only. All captured test data is deleted at campaign close. The purpose is to measure susceptibility — not to harvest real credentials.</div>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Go to Landing Pages in GoPhish</div><div class="sd">GoPhish → <strong>Landing Pages → New Page</strong> → Name: <code>IT Portal — Password Verification</code></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Paste the HTML login form</div><div class="sd">Use GoPhish's HTML editor to create a convincing IT portal login page. The form must have <code>name="username"</code> and <code>name="password"</code> fields for GoPhish to capture them.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Enable credential capture</div><div class="sd">Tick <strong>"Capture Submitted Data"</strong> and <strong>"Capture Passwords"</strong>. Set Redirect URL to the real company login page (so victim doesn't get suspicious after submitting).</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Preview and save</div><div class="sd">Click <strong>Preview</strong> to confirm the page renders correctly in browser. Save when satisfied.</div></div></div>
+    </div>
+
+    <!-- ════ SCREENSHOT 03 — LANDING PAGE ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 03 — Fake IT Portal Login Page (Credential Harvesting)</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#dc2626;font-size:11px;">⚠ Not Secure</span> http://192.168.1.100/?rid=AbCdEf — YourCompany IT Portal</div>
+        </div>
+        <div class="browser-body">
+          <div class="lp-wrap">
+            <div>
+              <div class="lp-card">
+                <div class="lp-logo-row">
+                  <div class="lp-logo-icon">YC</div>
+                  <div>
+                    <div class="lp-company">YourCompany<sub>IT Security Portal</sub></div>
+                  </div>
+                </div>
+                <div class="lp-heading">Verify Your Identity</div>
+                <div class="lp-sub">Your account requires immediate verification. Enter your credentials below to restore access.</div>
+                <div class="lp-field">
+                  <label class="lp-label">Email / Employee ID</label>
+                  <input class="lp-input prefill" value="g.sharma@example.com" readonly>
+                </div>
+                <div class="lp-field">
+                  <label class="lp-label">Current Password</label>
+                  <input class="lp-input" type="password" placeholder="Enter your password" style="background:#fff;border-color:#e2e8f0;">
+                </div>
+                <button class="lp-submit">Verify &amp; Restore Access</button>
+                <div class="lp-divider">Secured by YourCompany SSO</div>
+                <div class="lp-secure">🔒 This connection is encrypted and secure</div>
+              </div>
+              <div class="lp-warning-banner">
+                <div class="lp-warning-title">⚠ Red Flags on This Page</div>
+                <div class="lp-flag"><div class="lp-flag-dot"></div><span>URL shows <strong>HTTP not HTTPS</strong> — browser shows "Not Secure" warning</span></div>
+                <div class="lp-flag"><div class="lp-flag-dot"></div><span>Domain is an <strong>IP address</strong>, not the company's domain name</span></div>
+                <div class="lp-flag"><div class="lp-flag-dot"></div><span>Legitimate portals <strong>never ask for your current password</strong> via email link</span></div>
+                <div class="lp-flag"><div class="lp-flag-dot"></div><span>URL contains a tracking parameter (<code>?rid=</code>) — GoPhish tracking code</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Fake IT portal login page — captures credentials on submit then redirects to real site. Red flags annotated below.</span>
+        <span class="ss-cap-num">SS-03</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S8 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s8"></span>
+    <div class="slabel">08 — Campaign Setup</div>
+    <h2>Create Sending Profile &amp; Target Group</h2>
+    <h3>Target Group CSV Format</h3>
+    <pre><code>First Name,Last Name,Email,Position
+Gaurav,Sharma,g.sharma@example.com,Executive
+Priya,Mehta,p.mehta@example.com,Manager
+Rahul,Joshi,r.joshi@example.com,Staff
+Anita,Patel,a.patel@example.com,IT Staff
+Vijay,Nair,v.nair@example.com,Executive</code></pre>
+    <div class="tip"><div class="tip-lbl">Add Position / Role to the group</div>The Position field lets you segment results by role. Finding that executives click at 75% vs IT staff at 12% is a key insight for the awareness report — it shows exactly where to focus training.</div>
+    <h3>Campaign Configuration in GoPhish</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Create new campaign</div><div class="sd">GoPhish → <strong>Campaigns → New Campaign</strong> → set all fields: Name, Email Template, Landing Page, URL, Sending Profile, Groups.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Set launch time strategically</div><div class="sd">Schedule for <strong>Monday 9:00am</strong> — statistically when people are least alert. Avoid Fridays (people clean out inbox) and holidays.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Launch and monitor</div><div class="sd">Click <strong>Launch Campaign</strong>. The dashboard updates in real-time as recipients open, click, and submit.</div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ S9 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s9"></span>
+    <div class="slabel">09 — Campaign Live</div>
+    <h2>Launch the Campaign &amp; Track Real-Time Results</h2>
+    <p>Once launched, the GoPhish dashboard becomes your <strong>live threat intelligence feed</strong> — showing exactly who opened, who clicked, and who submitted credentials — all in real time.</p>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Monitor live events</div><div class="sd">The Campaign Results page auto-refreshes every few seconds. Each row shows: email address, action taken (Opened/Clicked/Submitted), IP address, user agent string, and timestamp.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Wait 48–72 hours before closing</div><div class="sd">Some recipients open emails days later. A 72-hour window captures the full open rate.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Export results to CSV</div><div class="sd">Campaign → <strong>Export Results</strong> → download CSV. Contains every event with timestamps — this is your raw data for analysis.</div></div></div>
+    </div>
+    <div class="ssnote">📸 Take a screenshot of the GoPhish dashboard while the campaign is live — showing events appearing in real-time.</div>
+  </div>
+
+  <!-- ═══ S10 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s10"></span>
+    <div class="slabel">10 — Results Analysis</div>
+    <h2>Analyse Campaign Results with Python</h2>
+    <pre><code><span class="cm">#!/usr/bin/env python3 — Phishing Campaign Analyser</span>
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('campaign_results.csv')
+df['time'] = pd.to_datetime(df['time'])
+
+total_sent      = len(df[df['message'] == 'Email Sent'])
+total_opened    = len(df[df['message'] == 'Email Opened'])
+total_clicked   = len(df[df['message'] == 'Clicked Link'])
+total_submitted = len(df[df['message'] == 'Submitted Data'])
+
+print(f"Sent:      {total_sent}")
+print(f"Opened:    {total_opened} ({total_opened/total_sent*100:.1f}%)")
+print(f"Clicked:   {total_clicked} ({total_clicked/total_sent*100:.1f}%)")
+print(f"Submitted: {total_submitted} ({total_submitted/total_sent*100:.1f}%)")
+
+<span class="cm"># Segment by role</span>
+click_events = df[df['message'] == 'Clicked Link']
+role_clicks = click_events.groupby('position').size()
+print("\nClick rate by role:")
+print(role_clicks)</code></pre>
+
+    <!-- ════ SCREENSHOT 04 — RESULTS CHART ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 04 — Python Campaign Results Charts</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#5a9a7a">📊</span> campaign_analysis.py — Output: campaign_funnel.png · role_breakdown.png</div>
+        </div>
+        <div class="browser-body">
+          <div class="chart-bg">
+            <div class="chart-title-row">
+              <div><div class="chart-title">Phishing Campaign — Simulation A · n=50 Targets</div><div class="chart-sub">Generated by campaign_analysis.py · 18 Apr 2025</div></div>
+              <div style="font-family:monospace;font-size:10px;color:#4a6a8a;text-align:right;">matplotlib v3.8 · pandas v2.1<br>Export: campaign_results.csv</div>
+            </div>
+            <div class="chart-divider"></div>
+
+            <!-- CAMPAIGN FUNNEL -->
+            <div style="font-family:monospace;font-size:11px;color:#4a6a8a;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;">Campaign Funnel</div>
+            <div class="funnel-row">
+              <div class="funnel-label">Emails Sent</div>
+              <div class="funnel-track"><div class="funnel-fill" style="width:100%;background:linear-gradient(90deg,#0070c0,#00a0f0)">50 recipients</div></div>
+              <div class="funnel-pct">100%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">Opened</div>
+              <div class="funnel-track"><div class="funnel-fill" style="width:62%;background:linear-gradient(90deg,#c07000,#f5a623)">31 opened</div></div>
+              <div class="funnel-pct" style="color:#f5a623">62%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">Clicked</div>
+              <div class="funnel-track"><div class="funnel-fill" style="width:38%;background:linear-gradient(90deg,#a03000,#ff6432)">19 clicked</div></div>
+              <div class="funnel-pct" style="color:#ff6432">38%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">Submitted</div>
+              <div class="funnel-track"><div class="funnel-fill" style="width:18%;background:linear-gradient(90deg,#800030,#ff3b5c)">9 submitted</div></div>
+              <div class="funnel-pct" style="color:#ff3b5c">18%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">Reported</div>
+              <div class="funnel-track"><div class="funnel-fill" style="width:0%;background:#1a3a50"><span style="padding-left:10px;font-family:monospace;font-size:10px;color:#3a5a70">0 — no one reported the phishing email</span></div></div>
+              <div class="funnel-pct" style="color:#3a5a70">0%</div>
+            </div>
+
+            <div class="chart-divider"></div>
+
+            <!-- ROLE BREAKDOWN -->
+            <div class="role-section">
+              <div class="role-title">Click Rate by Employee Role</div>
+              <div class="role-row">
+                <div class="role-label">Executive</div>
+                <div class="role-track"><div class="role-fill" style="width:75%;background:linear-gradient(90deg,#800030,#ff3b5c)">75% — Highest Risk 🔴</div></div>
+              </div>
+              <div class="role-row">
+                <div class="role-label">Manager</div>
+                <div class="role-track"><div class="role-fill" style="width:45%;background:linear-gradient(90deg,#a06000,#f5a623)">45% — High Risk 🟠</div></div>
+              </div>
+              <div class="role-row">
+                <div class="role-label">Staff</div>
+                <div class="role-track"><div class="role-fill" style="width:28%;background:linear-gradient(90deg,#005080,#00a0f0)">28% — Medium Risk 🔵</div></div>
+              </div>
+              <div class="role-row">
+                <div class="role-label">IT Staff</div>
+                <div class="role-track"><div class="role-fill" style="width:12%;background:linear-gradient(90deg,#006040,#00c9a7)">12% — Lower Risk 🟢</div></div>
+              </div>
+
+              <div class="donut-wrap">
+                <div style="flex:1">
+                  <div style="font-family:monospace;font-size:10px;color:#4a6a8a;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">vs Industry Benchmark</div>
+                  <div class="role-row" style="margin-bottom:5px;">
+                    <div class="role-label" style="font-size:9px;">Click Rate</div>
+                    <div class="role-track" style="height:14px;"><div class="role-fill" style="width:38%;background:linear-gradient(90deg,#800030,#ff3b5c);font-size:9px;">38% (ours)</div></div>
+                  </div>
+                  <div class="role-row">
+                    <div class="role-label" style="font-size:9px;">Industry avg</div>
+                    <div class="role-track" style="height:14px;"><div class="role-fill" style="width:20%;background:#1a3a50;font-size:9px;color:#5a9ab0;">20% avg</div></div>
+                  </div>
+                </div>
+                <div class="donut-legend">
+                  <div class="legend-item"><div class="legend-dot" style="background:#ff3b5c"></div>Submitted<span class="legend-val">18%</span></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:#ff6432"></div>Clicked only<span class="legend-val">20%</span></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:#f5a623"></div>Opened only<span class="legend-val">24%</span></div>
+                  <div class="legend-item"><div class="legend-dot" style="background:#1a3a50"></div>No action<span class="legend-val">38%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Python matplotlib output — campaign funnel, role breakdown, and benchmark comparison charts</span>
+        <span class="ss-cap-num">SS-04</span>
+      </div>
+    </div>
+
+    <h3>Key Findings to Document</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Metric</th><th>Our Result</th><th>Industry Average</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr><td>Open Rate</td><td>62%</td><td>~40%</td><td style="color:var(--amber)">⚠ HIGH</td></tr>
+        <tr><td>Click Rate</td><td>38%</td><td>~20%</td><td style="color:var(--red)">🔴 CRITICAL</td></tr>
+        <tr><td>Credential Submission</td><td>18%</td><td>~8%</td><td style="color:var(--red)">🔴 CRITICAL</td></tr>
+        <tr><td>Time to First Click</td><td>3 minutes after delivery</td><td>—</td><td style="color:var(--red)">🔴 CRITICAL</td></tr>
+        <tr><td>Phishing Report Rate</td><td>0%</td><td>~5%</td><td style="color:var(--red)">🔴 CRITICAL</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <!-- ═══ S11 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s11"></span>
+    <div class="slabel">11 — Indicator Analysis</div>
+    <h2>Phishing Indicator Analysis — 8 Red Flags</h2>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Red Flag</th><th>What to Look For</th><th>Severity</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Sender domain mismatch</strong></td><td>Display name says "IT Security" but domain is <code>yourcompany-alerts.net</code> not <code>yourcompany.com</code></td><td style="color:var(--red)">Critical</td></tr>
+        <tr><td>2</td><td><strong>Urgency language</strong></td><td>"24 hours", "suspended", "immediately" — designed to prevent careful analysis</td><td style="color:var(--amber)">High</td></tr>
+        <tr><td>3</td><td><strong>Fear-based trigger</strong></td><td>"Unusual sign-in activity" with no specific device, location or time details</td><td style="color:var(--amber)">High</td></tr>
+        <tr><td>4</td><td><strong>Suspicious link URL</strong></td><td>Hovering over the button reveals an IP address, not the company domain</td><td style="color:var(--red)">Critical</td></tr>
+        <tr><td>5</td><td><strong>HTTP not HTTPS on landing page</strong></td><td>Browser shows "Not Secure" — real IT portals always use HTTPS</td><td style="color:var(--red)">Critical</td></tr>
+        <tr><td>6</td><td><strong>Request for password via email link</strong></td><td>Legitimate companies <em>never</em> ask you to enter your password by clicking an email link</td><td style="color:var(--red)">Critical</td></tr>
+        <tr><td>7</td><td><strong>No personalisation</strong></td><td>Real IT alerts include last login time, device name, location, and employee ID</td><td style="color:var(--muted)">Medium</td></tr>
+        <tr><td>8</td><td><strong>No digital signature</strong></td><td>Checking email headers shows SPF and DKIM failures — it's not from a legitimate server</td><td style="color:var(--amber)">High</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Correct Response When Suspicious</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Hover over any link before clicking</div><div class="sd">Check the URL in the status bar. If it doesn't match the company's official domain exactly — do not click.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Expand the sender's actual email address</div><div class="sd">Click the sender display name to reveal the full address. Any domain mismatch is an immediate red flag.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Contact IT directly — not through the email</div><div class="sd">Call or message IT through a known, verified channel (Teams, Slack, direct phone). Never reply to the suspicious email.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Report using the "Report Phishing" button</div><div class="sd">Use the Outlook/Gmail plugin or forward to <code>security@yourcompany.com</code>. This is the correct and expected response.</div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ S12 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s12"></span>
+    <div class="slabel">12 — Awareness Report</div>
+    <h2>Write the Professional Awareness Report</h2>
+    <p>The awareness report is the <strong>professional deliverable</strong> of this project — it transforms raw GoPhish data into a document a CISO or HR team can act on immediately.</p>
+
+    <!-- ════ SCREENSHOT 05 — AWARENESS REPORT PDF ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 05 — Security Awareness Report (PDF Preview)</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#e87070">📄</span> Phishing_Security_Awareness_Report_2025.pdf — Page 1 of 6</div>
+        </div>
+        <div class="browser-body">
+          <div class="pdf-wrap">
+            <div class="pdf-page">
+              <div class="pdf-header">
+                <div class="pdf-header-left">
+                  <h2>Phishing Simulation<br>Security Awareness Report</h2>
+                  <p>Prepared by: Gaurav Shirke · Senior Cyber Security Engineer</p>
+                </div>
+                <div class="pdf-header-right">
+                  <div class="classification">INTERNAL — CONFIDENTIAL</div>
+                  <div class="date">April 2025 · Version 1.0</div>
+                </div>
+              </div>
+              <div class="pdf-top-strip"></div>
+              <div class="pdf-body">
+                <div class="pdf-exec-summary">
+                  <div class="pdf-exec-title">Executive Summary</div>
+                  <div class="pdf-exec-text">A controlled phishing simulation was conducted targeting <strong>50 consenting employees</strong> using an IT password-reset lure. Results indicate a <strong style="color:#c02040">CRITICAL risk</strong> level — 38% of recipients clicked the malicious link and 18% submitted their credentials to the fake login portal. Zero recipients reported the email to IT Security. Immediate remediation is strongly recommended.</div>
+                </div>
+
+                <div class="pdf-section-title">Campaign Metrics</div>
+                <div class="pdf-metrics-grid">
+                  <div class="pdf-metric-cell"><div class="pdf-metric-n" style="color:#1a56db">50</div><div class="pdf-metric-l">Emails Sent</div></div>
+                  <div class="pdf-metric-cell"><div class="pdf-metric-n" style="color:#d97706">62%</div><div class="pdf-metric-l">Open Rate</div></div>
+                  <div class="pdf-metric-cell"><div class="pdf-metric-n" style="color:#dc2626">38%</div><div class="pdf-metric-l">Click Rate</div></div>
+                  <div class="pdf-metric-cell"><div class="pdf-metric-n" style="color:#dc2626">18%</div><div class="pdf-metric-l">Submitted</div></div>
+                </div>
+
+                <div class="pdf-section-title">Key Findings</div>
+                <div class="pdf-finding-row">
+                  <div class="pdf-finding-icon" style="background:#dc2626">!</div>
+                  <div class="pdf-finding-text"><strong>18% credential submission rate</strong> — significantly above the 8% industry average. 9 employees entered their passwords into the fake portal. <span class="pdf-badge crit">CRITICAL</span></div>
+                </div>
+                <div class="pdf-finding-row">
+                  <div class="pdf-finding-icon" style="background:#dc2626">!</div>
+                  <div class="pdf-finding-text"><strong>0% phishing report rate</strong> — no participant reported the simulation to IT Security, suggesting the reporting workflow is unknown or unused. <span class="pdf-badge crit">CRITICAL</span></div>
+                </div>
+                <div class="pdf-finding-row">
+                  <div class="pdf-finding-icon" style="background:#d97706">▲</div>
+                  <div class="pdf-finding-text"><strong>Executives 75% click rate</strong> — highest-risk group. C-level and senior management are disproportionately susceptible to authority-based lures. <span class="pdf-badge high">HIGH</span></div>
+                </div>
+                <div class="pdf-finding-row">
+                  <div class="pdf-finding-icon" style="background:#d97706">▲</div>
+                  <div class="pdf-finding-text"><strong>Fastest click: 3 minutes</strong> after delivery — indicates recipients did not analyse the email before acting. <span class="pdf-badge high">HIGH</span></div>
+                </div>
+
+                <div class="pdf-section-title">Remediation Recommendations</div>
+                <div class="pdf-remed-item"><div class="pdf-remed-num">1</div><div>Deploy MFA on all accounts <strong>immediately</strong> — eliminates credential-theft risk even if passwords are phished. Priority: executives and privileged accounts.</div></div>
+                <div class="pdf-remed-item"><div class="pdf-remed-num">2</div><div>Enable <strong>DMARC with reject policy</strong> on all company domains — blocks sender spoofing. Implementation: 2–4 hours with IT.</div></div>
+                <div class="pdf-remed-item"><div class="pdf-remed-num">3</div><div>Mandatory <strong>phishing awareness training</strong> for all staff within 30 days — priority cohort: executives and managers (75% and 45% click rates).</div></div>
+                <div class="pdf-remed-item"><div class="pdf-remed-num">4</div><div>Deploy <strong>"Report Phishing" button</strong> (Microsoft Defender for Office 365) — enables rapid threat intelligence and normalises the reporting behaviour.</div></div>
+                <div class="pdf-remed-item"><div class="pdf-remed-num">5</div><div>Establish a <strong>quarterly phishing simulation programme</strong> — measure improvement over time. Target: reduce click rate below 10% within 12 months.</div></div>
+              </div>
+              <div class="pdf-footer">
+                <div class="pdf-footer-text">Gaurav Shirke — Senior Cyber Security Engineer · Essen Vision · Mumbai</div>
+                <div class="pdf-page-num">Page 1 / 6 — CONFIDENTIAL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Professional phishing awareness report — executive summary, metrics, findings and remediation roadmap</span>
+        <span class="ss-cap-num">SS-05</span>
+      </div>
+    </div>
+
+    <h3>Report Structure</h3>
+    <pre><code><span class="cm"># Phishing_Security_Awareness_Report_2025.md</span>
+
+## Executive Summary
+[2-3 paragraphs: what was done, headline numbers, overall risk rating]
+
+## Campaign Methodology
+[GoPhish + Mailtrap setup, email template approach, target group selection, timeline]
+
+## Campaign Results
+[Funnel table + charts: open rate, click rate, submission rate, time-to-click distribution]
+
+## Phishing Indicator Analysis
+[Annotated email screenshot with all 8 red flags highlighted and explained]
+
+## Risk Assessment
+[Overall rating: CRITICAL — based on 38% click rate vs 20% industry benchmark]
+
+## Remediation Roadmap (Prioritised)
+1. MFA — Immediate
+2. DMARC with reject policy — Immediate
+3. Mandatory phishing awareness training — 30 days
+4. Report-Phishing button deployment — 30 days
+5. Quarterly simulation programme — 90 days
+
+## Training Materials Attached
+[Summary of awareness slides / deck produced]
+
+## Appendix
+[Raw campaign data CSV, GoPhish configuration screenshots, full indicator list]</code></pre>
+
+    <h3>Remediation Roadmap Summary</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Priority</th><th>Control</th><th>Effort</th><th>Risk Reduction</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--red)">🔴 Immediate</td><td>Deploy MFA on all accounts</td><td>1–2 days</td><td>Eliminates 99% of credential theft impact</td></tr>
+        <tr><td style="color:var(--red)">🔴 Immediate</td><td>Enable DMARC reject policy</td><td>2–4 hours</td><td>Blocks sender domain spoofing entirely</td></tr>
+        <tr><td style="color:var(--amber)">🟡 30 days</td><td>Mandatory phishing awareness training</td><td>1–2 weeks</td><td>Reduces click rate by 40–60% within 6 months</td></tr>
+        <tr><td style="color:var(--amber)">🟡 30 days</td><td>Deploy "Report Phishing" button</td><td>1 day</td><td>Enables rapid threat intelligence collection</td></tr>
+        <tr><td style="color:var(--green)">🟢 90 days</td><td>Quarterly simulation programme</td><td>Ongoing</td><td>Sustained measurable improvement over time</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S13 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s13"></span>
+    <div class="slabel">13 — Documentation</div>
+    <h2>Documentation &amp; Screenshot Requirements</h2>
+    <ul class="cl">
+      <li>SS-01: GoPhish admin dashboard with live campaign stats and results table</li>
+      <li>SS-02: Phishing email in Mailtrap inbox with 8 red flags annotated</li>
+      <li>SS-03: Fake IT portal login page in browser showing "Not Secure"</li>
+      <li>SS-04: Python matplotlib campaign funnel chart + role breakdown chart</li>
+      <li>SS-05: Professional awareness report PDF — page 1 showing all findings</li>
+      <li>SS-06: GoPhish Sending Profile with Mailtrap SMTP settings configured</li>
+      <li>SS-07: GoPhish Email Template HTML editor with the phishing template</li>
+      <li>SS-08: Campaign Results CSV opened in spreadsheet (raw data)</li>
+      <li>SS-09: GoPhish Campaign creation screen with all fields filled</li>
+      <li>SS-10: Mailtrap inbox showing email received + spam score analysis</li>
+    </ul>
+    <h3>Recommended Folder Structure</h3>
+    <pre><code>Phishing-Simulation-Project/
+├── 01-Setup/
+│   ├── gophish-dashboard-live.png     ← SS-01
+│   ├── sending-profile-mailtrap.png   ← SS-06
+│   └── campaign-creation-screen.png   ← SS-09
+├── 02-Templates/
+│   ├── email-preview-mailtrap.png     ← SS-02
+│   ├── email-template-editor.png      ← SS-07
+│   └── landing-page-browser.png       ← SS-03
+├── 03-Results/
+│   ├── campaign-funnel-chart.png      ← SS-04
+│   ├── raw-results-csv.png            ← SS-08
+│   └── mailtrap-inbox-spam-score.png  ← SS-10
+├── 04-Report/
+│   └── Phishing_Awareness_Report_2025.pdf ← SS-05
+├── campaign_analysis.py
+└── Project-Report.md</code></pre>
+  </div>
+
+  <!-- ═══ S14 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s14"></span>
+    <div class="slabel">14 — Completion</div>
+    <h2>Project Completion Checklist &amp; Portfolio Summary</h2>
+    <h3>Completion Checklist</h3>
+    <ul class="cl">
+      <li>GoPhish installed and admin panel accessible at localhost:3333</li>
+      <li>Mailtrap account created and SMTP sending profile configured in GoPhish</li>
+      <li>Phishing HTML email template created with 5 psychological triggers</li>
+      <li>Credential harvesting landing page created and tested in GoPhish</li>
+      <li>Target group created using consenting participants only</li>
+      <li>Campaign launched and ran for minimum 48 hours</li>
+      <li>Campaign results exported as CSV from GoPhish</li>
+      <li>Python analysis script run producing funnel and role breakdown charts</li>
+      <li>All 8 phishing indicators identified and documented</li>
+      <li>Findings table completed vs industry benchmark comparisons</li>
+      <li>Remediation roadmap written with 5 prioritised controls</li>
+      <li>Professional awareness report PDF produced</li>
+      <li>All 10 required screenshots captured and organised in folders</li>
+    </ul>
+    <div class="pbox">
+      <div class="pbox-title">Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</div>
+      <div class="pver">
+        <button class="cbtn" onclick="copyText('short')">Copy</button>
+        <div class="pvlbl">Short Version — Resume bullet point</div>
+        <p id="short">Designed and executed a controlled phishing simulation using GoPhish and Mailtrap targeting 50 consenting participants. Achieved 38% click rate and 18% credential submission rate against an IT password-reset lure — both significantly above industry averages. Produced a professional awareness report with 8 annotated phishing indicators, risk ratings benchmarked against industry, and a prioritised 5-control remediation roadmap including immediate MFA, DMARC, and security awareness training. MITRE ATT&amp;CK: T1566.001, T1566.002.</p>
+      </div>
+      <div class="pver" style="margin-top:14px">
+        <button class="cbtn" onclick="copyText('medium')">Copy</button>
+        <div class="pvlbl">Medium Version — LinkedIn project description</div>
+        <p id="medium">Project: Phishing Simulation & Security Awareness Report
+
+Designed and executed a full phishing simulation engagement using GoPhish with Mailtrap as safe SMTP relay — ensuring zero real inboxes were targeted. The simulation tested 50 consenting participants using a spear-phishing email incorporating 5 psychological triggers: urgency, authority, fear, familiarity, and scarcity.
+
+Campaign Results (vs industry average):
+— 62% open rate (industry avg: 40%)
+— 38% click rate — CRITICAL (industry avg: 20%)
+— 18% credential submission rate — CRITICAL (industry avg: 8%)
+— 0% phishing report rate — no participant reported the simulation
+— Executives: 75% click rate (highest risk group)
+— IT staff: 12% click rate (lowest risk group)
+— Time to first click: 3 minutes after delivery
+
+Deliverables:
+— Python analysis script (pandas + matplotlib) producing campaign funnel and role-segmented charts
+— 8-indicator phishing red flag analysis with annotated email screenshots
+— Professional security awareness report with executive summary, metrics, risk ratings, and remediation roadmap
+— 5-control remediation plan: MFA (immediate), DMARC (immediate), awareness training (30d), report-phishing button (30d), quarterly simulation programme (90d)
+
+MITRE ATT&CK: T1566.001 (Spearphishing Link), T1566.002 (Spearphishing Attachment) — Initial Access tactic
+
+Tools: GoPhish · Mailtrap · Python · pandas · matplotlib · HTML/CSS</p>
+      </div>
+      <div style="margin-top:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;">
+        <div class="pvlbl">Skills Demonstrated</div>
+        <div class="tagrow">
+          <span class="stag">GoPhish</span><span class="stag">Mailtrap</span>
+          <span class="stag">Social Engineering</span><span class="stag">Phishing Simulation</span>
+          <span class="stag">Email Security</span><span class="stag">DMARC / SPF / DKIM</span>
+          <span class="stag">Python</span><span class="stag">pandas</span><span class="stag">matplotlib</span>
+          <span class="stag">Awareness Training</span><span class="stag">Risk Assessment</span>
+          <span class="stag">MITRE ATT&amp;CK</span><span class="stag">Incident Response</span>
+          <span class="stag">MFA</span><span class="stag">Security Report Writing</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer><a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; <span>Senior Cyber Security Engineer</span> &nbsp;·&nbsp; Mumbai, India</footer>
+
+<script>
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;cur.style.left=mx+'px';cur.style.top=my+'px';curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button,.stag,.stat,.step,.tc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';cur.style.background='#00d4ff';curR.style.width='52px';curR.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';cur.style.background='#00e5a0';curR.style.width='36px';curR.style.height='36px';});
+});
+(function(){const cv=document.getElementById('matrix-canvas'),ctx=cv.getContext('2d');let W,H,cols,drops;const ch='01アイウエオカキクケコサシスセソタチツテトナニヌネノ'.split('');function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cols=Math.floor(W/18);drops=Array(cols).fill(0).map(()=>Math.random()*-80);}function draw(){ctx.fillStyle='rgba(2,6,8,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<cols;i++){const c=ch[Math.floor(Math.random()*ch.length)];ctx.fillStyle=Math.random()>.96?'#ffffff':'#00e5a0';ctx.globalAlpha=Math.random()*.5+.3;ctx.font='13px monospace';ctx.fillText(c,i*18,drops[i]*18);if(drops[i]*18>H&&Math.random()>.975)drops[i]=0;drops[i]+=.4;}ctx.globalAlpha=1;}init();setInterval(draw,55);window.addEventListener('resize',init);})();
+(function(){const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');let W,H;const pts=[];function P(){this.reset=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.35+.1;this.life=Math.random()*300+200;this.age=0;};this.reset();}P.prototype.upd=function(){this.x+=this.vx;this.y+=this.vy;this.age++;if(this.age>this.life||this.x<0||this.x>W||this.y<0||this.y>H)this.reset();};P.prototype.drw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(0,229,160,'+this.a+')';ctx.fill();};function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;if(!pts.length)for(let i=0;i<100;i++)pts.push(new P());}function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,229,160,'+(0.07*(1-d/110))+')';ctx.lineWidth=.5;ctx.stroke();}}pts.forEach(p=>{p.upd();p.drw();});requestAnimationFrame(draw);}init();draw();window.addEventListener('resize',init);})();
+window.addEventListener('scroll',()=>{const d=document.documentElement;const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);document.getElementById('prog').style.width=(s*100)+'%';},{passive:true});
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*65);});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+function copyText(id){const el=document.getElementById(id);navigator.clipboard.writeText(el.innerText).then(()=>{const btn=el.parentElement.querySelector('.cbtn');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+</script>
+</body>
+</html>
