@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 04 — Vulnerability Assessment Report | Gaurav Shirke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;
+  --green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;
+  --amber:#f5a623;--red:#ff3b5c;--text:#b8cdd8;--muted:#4a6572;--border:#112030;
+  --glow:0 0 20px rgba(0,229,160,0.4),0 0 40px rgba(0,229,160,0.2);
+  --font-d:'Orbitron',sans-serif;--font-m:'Share Tech Mono',monospace;--font-b:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--font-b);font-size:16px;line-height:1.7;overflow-x:hidden;cursor:none;}
+/* CURSOR — exact from index.html */
+.cursor{width:12px;height:12px;background:var(--green);border-radius:50%;position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s,background .2s;}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(0,229,160,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+/* BACKGROUND — exact from index.html */
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.045;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:0;opacity:.7;pointer-events:none;}
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.scanlines{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;}
+.vignette{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.65) 100%);pointer-events:none;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));z-index:2000;transition:width .1s;width:0%;}
+/* NAV — exact from index.html */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(5,13,16,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,160,.1);}
+.nav-logo{font-family:var(--font-m);font-size:14px;color:var(--green);text-decoration:none;}
+.nav-logo .at{color:var(--cyan);}.nav-logo .pr{color:var(--muted);}
+.nav-back{font-family:var(--font-m);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .3s;position:relative;}
+.nav-back::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--green);transform:scaleX(0);transition:transform .3s;}
+.nav-back:hover{color:var(--green);}.nav-back:hover::after{transform:scaleX(1);}
+.nav-st{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.sdot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.6);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+/* LAYOUT */
+.container{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:80px 48px 100px;}
+.crumb{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.crumb a{color:var(--green);text-decoration:none;}
+.ptag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--amber);border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.07);padding:5px 14px;border-radius:2px;margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;}
+h1{font-family:var(--font-d);font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:16px;letter-spacing:.02em;}
+h1 em{font-style:normal;color:var(--green);}
+.pmeta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.pill{font-family:var(--font-m);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+.pill.g{border-color:rgba(0,229,160,.3);color:var(--green);background:rgba(0,229,160,.07);}
+.pill.a{border-color:rgba(245,166,35,.3);color:var(--amber);background:rgba(245,166,35,.07);}
+.sbanner{display:flex;align-items:flex-start;gap:14px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px 22px;margin-bottom:48px;font-size:14px;color:var(--text);}
+.sbdot{width:9px;height:9px;background:var(--amber);border-radius:50%;flex-shrink:0;margin-top:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}}
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:56px;}
+.toc-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
+.toc ol{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:tc;}
+.toc li{counter-increment:tc;display:flex;align-items:baseline;gap:10px;font-size:14px;}
+.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--font-m);font-size:11px;color:var(--muted);flex-shrink:0;}
+.toc a{color:var(--text);text-decoration:none;transition:color .2s;}
+.toc a:hover{color:var(--green);}
+/* SECTIONS */
+.sec{margin-bottom:64px;}
+.anc{display:block;height:80px;margin-top:-80px;visibility:hidden;}
+.slabel{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.slabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,160,.3),transparent);}
+h2{font-family:var(--font-d);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
+h3{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
+h4{font-family:var(--font-m);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
+p{font-size:15px;color:var(--text);opacity:.9;margin-bottom:14px;}
+strong{color:#fff;font-weight:600;}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 22px;overflow-x:auto;margin:18px 0;}
+code{font-family:var(--font-m);font-size:12.5px;color:var(--green);line-height:1.65;}
+pre code{color:var(--green);}
+p code,li code,.sd code{font-family:var(--font-m);font-size:12px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:2px 6px;color:var(--green);}
+.cm{color:var(--muted);}
+.exp{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.exp-lbl{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.warn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.warn-lbl{font-family:var(--font-m);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tip{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.tip-lbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tw{overflow-x:auto;margin:20px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:var(--font-m);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
+td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,229,160,.025);}
+.steps{display:flex;flex-direction:column;gap:2px;margin:18px 0;}
+.step{display:flex;gap:18px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:18px 22px;transition:border-color .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden;}
+.step::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green),var(--cyan));opacity:0;transition:opacity .3s;}
+.step:hover{border-color:rgba(0,229,160,.3);transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,0,0,.35);}
+.step:hover::before{opacity:1;}
+.sn{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
+.sb{flex:1;}.st2{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px;}
+.sd{font-size:14px;color:var(--muted);line-height:1.65;}
+.sd code{font-family:var(--font-m);font-size:11px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:1px 5px;color:var(--green);}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.tc{background:var(--bg);padding:14px 16px;transition:background .3s;}
+.tc:hover{background:var(--bg2);}
+.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
+.tcd{font-size:11px;color:var(--muted);font-family:var(--font-m);}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.metric{background:var(--bg);padding:18px 16px;text-align:center;transition:background .3s;}
+.metric:hover{background:var(--bg2);}
+.metric-num{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--green);line-height:1;text-shadow:0 0 18px rgba(0,229,160,.5);}
+.metric-num.red{color:var(--red);text-shadow:0 0 18px rgba(255,59,92,.4);}
+.metric-num.amber{color:var(--amber);text-shadow:0 0 18px rgba(245,166,35,.4);}
+.metric-num.cyan{color:var(--cyan);text-shadow:0 0 18px rgba(0,212,255,.4);}
+.metric-lbl{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:5px;}
+.cl{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.cl li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--text);}
+.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--font-m);}
+.ssnote{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--amber);background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:2px;padding:4px 10px;margin:8px 0;}
+.pbox{background:var(--bg);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:32px;position:relative;overflow:hidden;margin-top:40px;}
+.pbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
+.pbox-title{font-family:var(--font-d);font-size:15px;color:#fff;margin-bottom:16px;}
+.pver{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:14px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
+.pvlbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.cbtn{position:absolute;top:12px;right:12px;font-family:var(--font-m);font-size:11px;padding:5px 12px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.cbtn:hover{background:rgba(0,229,160,.2);}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.stag{font-family:var(--font-m);font-size:12px;padding:5px 12px;background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.15);border-radius:2px;color:var(--text);cursor:none;transition:all .25s;position:relative;overflow:hidden;}
+.stag::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,160,.1),transparent);opacity:0;transition:opacity .25s;}
+.stag:hover{border-color:var(--green);color:var(--green);transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(0,229,160,.3);}
+.stag:hover::before{opacity:1;}
+footer{position:relative;z-index:10;text-align:center;padding:26px 48px;border-top:1px solid var(--border);font-family:var(--font-m);font-size:12px;color:var(--muted);}
+footer a{color:var(--green);text-decoration:none;}footer span{color:var(--green);}
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:rgba(0,229,160,.3);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--green);}
+@media(max-width:768px){nav{padding:0 20px;}.container{padding:70px 20px 80px;}}
+
+/* ═══════════ WINDOWS SCREENSHOT SYSTEM ═══════════ */
+.ss-wrap{margin:32px 0;}
+.ss-heading{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.ss-heading::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,212,255,.25),transparent);}
+.ss-caption{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding:0 4px;}
+.ss-cap-text{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.ss-cap-num{font-family:var(--font-m);font-size:11px;color:var(--cyan);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:2px;padding:2px 8px;}
+
+/* Windows 11 chrome */
+.win{border:1px solid #333;border-radius:8px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04);}
+.win-titlebar{display:flex;align-items:center;padding:0 12px;height:32px;background:#1f1f1f;border-bottom:1px solid #2a2a2a;gap:8px;}
+.win-icon{font-size:14px;}
+.win-title{font-family:'Segoe UI',sans-serif;font-size:12px;color:#ccc;flex:1;}
+.win-controls{display:flex;gap:0;margin-left:auto;}
+.win-btn{width:46px;height:32px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;font-family:monospace;}
+.win-btn:hover{background:rgba(255,255,255,.08);}
+.win-btn.close:hover{background:#c42b1c;color:#fff;}
+.win-body{background:#fff;overflow:hidden;}
+
+/* Browser chrome for web-based tools */
+.browser{border:1px solid #2a3a4a;border-radius:8px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.8);}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1a2535;border-bottom:1px solid #2a3a4a;}
+.b-dot{width:11px;height:11px;border-radius:50%;}
+.b-addr{flex:1;margin:0 12px;background:#0f1e2e;border:1px solid #2a3a4a;border-radius:4px;padding:5px 12px;font-family:monospace;font-size:11px;color:#5a7a90;display:flex;align-items:center;gap:6px;}
+.b-lock{color:#00c9a7;}
+
+/* ═══ GREENBONE / OPENVAS STYLES ═══ */
+.gbn-app{background:#f5f6f8;min-height:500px;display:flex;}
+.gbn-sidebar{width:200px;background:#213d52;flex-shrink:0;}
+.gbn-logo{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);}
+.gbn-logo-text{font-family:'Segoe UI',sans-serif;font-size:14px;font-weight:700;color:#6dc9d4;}
+.gbn-logo-sub{font-size:10px;color:rgba(255,255,255,.4);font-family:monospace;margin-top:1px;}
+.gbn-nav{padding:8px 0;}
+.gbn-nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-family:'Segoe UI',sans-serif;font-size:12px;color:rgba(255,255,255,.6);cursor:default;}
+.gbn-nav-item:hover,.gbn-nav-item.act{background:rgba(255,255,255,.08);color:#fff;}
+.gbn-nav-item.act{border-left:3px solid #6dc9d4;padding-left:15px;}
+.gbn-nav-sep{height:1px;background:rgba(255,255,255,.06);margin:6px 0;}
+.gbn-main{flex:1;padding:20px 22px;overflow:hidden;}
+.gbn-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.gbn-page-title{font-family:'Segoe UI',sans-serif;font-size:18px;font-weight:700;color:#213d52;}
+.gbn-btn-grp{display:flex;gap:6px;}
+.gbn-btn{font-family:'Segoe UI',sans-serif;font-size:11px;padding:6px 14px;border-radius:3px;cursor:default;}
+.gbn-btn.primary{background:#6dc9d4;color:#fff;font-weight:600;}
+.gbn-btn.secondary{background:#fff;color:#213d52;border:1px solid #ddd;}
+/* Severity summary cards */
+.gbn-sev-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px;}
+.gbn-sev-card{border-radius:4px;padding:12px 14px;text-align:center;}
+.gbn-sev-n{font-family:'Segoe UI',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+.gbn-sev-l{font-family:'Segoe UI',sans-serif;font-size:10px;font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.04em;}
+.gbn-sev-card.crit{background:#fef2f2;border:1px solid #fecaca;}.gbn-sev-card.crit .gbn-sev-n{color:#dc2626;}.gbn-sev-card.crit .gbn-sev-l{color:#dc2626;}
+.gbn-sev-card.high{background:#fff7ed;border:1px solid #fed7aa;}.gbn-sev-card.high .gbn-sev-n{color:#ea580c;}.gbn-sev-card.high .gbn-sev-l{color:#ea580c;}
+.gbn-sev-card.med{background:#fffbeb;border:1px solid #fde68a;}.gbn-sev-card.med .gbn-sev-n{color:#d97706;}.gbn-sev-card.med .gbn-sev-l{color:#d97706;}
+.gbn-sev-card.low{background:#f0fdf4;border:1px solid #bbf7d0;}.gbn-sev-card.low .gbn-sev-n{color:#16a34a;}.gbn-sev-card.low .gbn-sev-l{color:#16a34a;}
+.gbn-sev-card.info{background:#eff6ff;border:1px solid #bfdbfe;}.gbn-sev-card.info .gbn-sev-n{color:#2563eb;}.gbn-sev-card.info .gbn-sev-l{color:#2563eb;}
+/* Results table */
+.gbn-tbl-wrap{background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;}
+.gbn-tbl-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;}
+.gbn-tbl-title{font-family:'Segoe UI',sans-serif;font-size:13px;font-weight:600;color:#374151;}
+.gbn-tbl-filter{font-family:monospace;font-size:11px;color:#6b7280;background:#f3f4f6;border:1px solid #e5e7eb;padding:4px 10px;border-radius:3px;}
+.gbn-tbl{width:100%;border-collapse:collapse;font-family:'Segoe UI',sans-serif;font-size:12px;}
+.gbn-tbl th{background:#f9fafb;color:#6b7280;padding:8px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;border-bottom:1px solid #e5e7eb;}
+.gbn-tbl td{padding:9px 14px;color:#374151;border-bottom:1px solid #f3f4f6;vertical-align:top;}
+.gbn-tbl tr:hover td{background:#f9fafb;}
+.cvss-badge{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:2px 8px;border-radius:3px;font-weight:700;font-family:monospace;font-size:12px;}
+.cvss-badge.c10{background:#dc2626;color:#fff;}
+.cvss-badge.c9{background:#dc2626;color:#fff;}
+.cvss-badge.c8{background:#ea580c;color:#fff;}
+.cvss-badge.c7{background:#ea580c;color:#fff;}
+.cvss-badge.c6{background:#d97706;color:#fff;}
+.cvss-badge.c5{background:#d97706;color:#fff;}
+.cvss-badge.c4{background:#ca8a04;color:#fff;}
+.cvss-badge.c3{background:#16a34a;color:#fff;}
+.sev-pill{font-family:'Segoe UI',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;}
+.sev-pill.C{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+.sev-pill.H{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;}
+.sev-pill.M{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
+.sev-pill.L{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+.cve-link{color:#2563eb;font-family:monospace;font-size:11px;text-decoration:none;}
+.gbn-host-chip{display:inline-flex;align-items:center;gap:4px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:3px;padding:2px 8px;font-family:monospace;font-size:10px;color:#374151;}
+
+/* ═══ NESSUS STYLES ═══ */
+.ness-app{background:#1a1a2e;min-height:480px;font-family:'Segoe UI',sans-serif;}
+.ness-header{background:#0d0d1a;padding:0 20px;height:48px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #2a2a4a;}
+.ness-logo{font-size:18px;font-weight:700;color:#00c9a7;letter-spacing:-.5px;}
+.ness-nav-item{font-size:12px;color:#6a7a9a;padding:0 12px;height:48px;display:flex;align-items:center;cursor:default;}
+.ness-nav-item.act{color:#fff;border-bottom:2px solid #00c9a7;}
+.ness-content{padding:22px;}
+.ness-scan-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;}
+.ness-scan-meta{font-size:12px;color:#6a7a9a;font-family:monospace;margin-bottom:18px;}
+/* Severity donut simulation */
+.ness-overview{display:grid;grid-template-columns:220px 1fr;gap:20px;margin-bottom:20px;}
+.ness-donut-area{background:#111126;border:1px solid #2a2a4a;border-radius:6px;padding:18px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;}
+.ness-donut-title{font-size:11px;color:#6a7a9a;text-transform:uppercase;letter-spacing:.08em;}
+.ness-donut-svg{width:140px;height:140px;}
+.ness-legend{display:flex;flex-direction:column;gap:8px;margin-top:8px;width:100%;}
+.ness-legend-item{display:flex;align-items:center;justify-content:space-between;font-size:11px;}
+.ness-legend-left{display:flex;align-items:center;gap:7px;}
+.ness-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ness-legend-label{color:#9aacbc;}
+.ness-legend-count{color:#fff;font-weight:700;font-family:monospace;}
+.ness-stat-cards{display:flex;flex-direction:column;gap:8px;}
+.ness-stat-card{background:#111126;border:1px solid #2a2a4a;border-radius:6px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.ness-stat-left{display:flex;flex-direction:column;gap:2px;}
+.ness-stat-label{font-size:11px;color:#6a7a9a;text-transform:uppercase;letter-spacing:.06em;}
+.ness-stat-val{font-size:22px;font-weight:700;color:#fff;font-family:monospace;}
+.ness-stat-bar{width:100px;height:8px;background:#2a2a4a;border-radius:4px;overflow:hidden;}
+.ness-stat-fill{height:100%;border-radius:4px;}
+/* Nessus findings table */
+.ness-tbl-wrap{background:#111126;border:1px solid #2a2a4a;border-radius:6px;overflow:hidden;}
+.ness-tbl-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #2a2a4a;}
+.ness-tbl-title{font-size:13px;font-weight:700;color:#fff;}
+.ness-filter{display:flex;gap:6px;}
+.ness-filter-btn{font-size:10px;padding:4px 10px;border-radius:3px;cursor:default;}
+.ness-filter-btn.on{background:#dc2626;color:#fff;font-weight:700;}
+.ness-filter-btn.off{background:#2a2a4a;color:#6a7a9a;}
+.ness-tbl{width:100%;border-collapse:collapse;}
+.ness-tbl th{background:#0d0d1a;color:#6a7a9a;padding:8px 16px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid #2a2a4a;}
+.ness-tbl td{padding:10px 16px;border-bottom:1px solid rgba(42,42,74,.5);font-size:12px;color:#c0d0e0;vertical-align:top;}
+.ness-tbl tr:hover td{background:rgba(0,201,167,.04);}
+.ness-plugin{font-family:monospace;font-size:10px;color:#4a6a8a;}
+.ness-host{font-family:monospace;font-size:11px;color:#6dc9d4;}
+.ness-solution{font-size:11px;color:#5a8a6a;font-style:italic;}
+
+/* ═══ WINDOWS EVENT LOG / BEFORE-AFTER ═══ */
+.win-event-viewer{background:#fff;display:flex;min-height:400px;}
+.ev-sidebar{width:200px;background:#f8f8f8;border-right:1px solid #e0e0e0;}
+.ev-tree-item{display:flex;align-items:center;gap:6px;padding:5px 12px;font-family:'Segoe UI',sans-serif;font-size:11px;color:#333;cursor:default;}
+.ev-tree-item:hover,.ev-tree-item.sel{background:#cce4f7;}
+.ev-tree-arrow{color:#666;font-size:9px;}
+.ev-main{flex:1;display:flex;flex-direction:column;}
+.ev-toolbar{display:flex;gap:0;padding:4px 8px;border-bottom:1px solid #e0e0e0;background:#f5f5f5;}
+.ev-tb-item{font-family:'Segoe UI',sans-serif;font-size:11px;color:#333;padding:4px 10px;cursor:default;}
+.ev-tb-item:hover{background:#e8e8e8;border-radius:2px;}
+.ev-table{flex:1;overflow:auto;}
+.ev-tbl{width:100%;border-collapse:collapse;font-family:'Segoe UI',sans-serif;font-size:11px;}
+.ev-tbl th{background:#e8e8e8;color:#333;padding:4px 12px;text-align:left;border-bottom:1px solid #d0d0d0;border-right:1px solid #d0d0d0;font-weight:600;}
+.ev-tbl td{padding:3px 12px;border-bottom:1px solid #f0f0f0;border-right:1px solid #f0f0f0;white-space:nowrap;}
+.ev-tbl tr.sel td{background:#cce4f7;}
+.ev-tbl tr:hover td{background:#e8f4fd;}
+.ev-icon{font-size:12px;width:16px;text-align:center;}
+.ev-detail{background:#f8f8f8;border-top:1px solid #e0e0e0;padding:10px 14px;font-family:'Segoe UI',sans-serif;font-size:11px;color:#333;min-height:80px;}
+.ev-detail-label{font-weight:600;color:#0066cc;margin-bottom:4px;}
+.ev-detail-content{font-family:'Courier New',monospace;font-size:10px;color:#444;line-height:1.6;white-space:pre-wrap;}
+
+/* ═══ BEFORE/AFTER COMPARISON ═══ */
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.ba-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.ba-header{padding:10px 16px;display:flex;align-items:center;gap:10px;font-family:var(--font-m);font-size:11px;border-bottom:1px solid var(--border);}
+.ba-header.before{background:rgba(255,59,92,.07);border-color:rgba(255,59,92,.2);color:var(--red);}
+.ba-header.after{background:rgba(0,229,160,.07);border-color:rgba(0,229,160,.2);color:var(--green);}
+.ba-body{padding:14px 16px;}
+.ba-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.ba-row:last-child{border-bottom:none;}
+.ba-label{color:var(--muted);font-family:var(--font-m);font-size:12px;}
+.ba-val{font-family:var(--font-m);font-size:12px;font-weight:700;}
+.ba-val.red{color:var(--red);}
+.ba-val.green{color:var(--green);}
+.ba-val.amber{color:var(--amber);}
+
+/* ═══ PDF REPORT STYLES ═══ */
+.pdf-wrap{background:#d4d4d4;padding:20px;font-family:'Georgia',serif;}
+.pdf-page{background:#fff;max-width:660px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.3);}
+.pdf-hdr{background:#1e3a5f;padding:24px 30px;display:flex;justify-content:space-between;align-items:flex-end;}
+.pdf-hdr-l h2{font-size:20px;color:#fff;font-weight:700;line-height:1.2;}
+.pdf-hdr-l p{font-size:11px;color:rgba(255,255,255,.65);margin-top:4px;font-family:monospace;}
+.pdf-hdr-r .pdf-class{font-family:monospace;font-size:10px;background:rgba(255,255,255,.15);color:#fff;padding:3px 8px;border-radius:2px;letter-spacing:.1em;}
+.pdf-hdr-r .pdf-date{font-family:monospace;font-size:10px;color:rgba(255,255,255,.55);margin-top:4px;text-align:right;}
+.pdf-accent{height:4px;background:linear-gradient(90deg,#dc2626,#ea580c,#d97706);}
+.pdf-body{padding:22px 30px;}
+.pdf-exec{background:#f8fafc;border-left:4px solid #1e3a5f;padding:14px 18px;margin-bottom:20px;border-radius:0 4px 4px 0;}
+.pdf-exec-title{font-size:11px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-family:monospace;}
+.pdf-exec-text{font-size:12px;color:#374151;line-height:1.65;}
+.pdf-section{margin-bottom:18px;}
+.pdf-section-title{font-size:12px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid #1e3a5f;padding-bottom:4px;margin-bottom:12px;font-family:monospace;}
+/* Mini findings table in PDF */
+.pdf-ftbl{width:100%;border-collapse:collapse;font-size:11px;font-family:'Segoe UI',sans-serif;}
+.pdf-ftbl th{background:#1e3a5f;color:#fff;padding:6px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
+.pdf-ftbl td{padding:6px 10px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+.pdf-ftbl tr:hover td{background:#f9fafb;}
+.pdf-risk-bar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pdf-risk-label{font-size:11px;color:#374151;width:80px;font-family:'Segoe UI',sans-serif;}
+.pdf-risk-bar{flex:1;height:16px;background:#e5e7eb;border-radius:2px;overflow:hidden;}
+.pdf-risk-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;font-family:monospace;}
+.pdf-remed{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:11px;color:#374151;font-family:'Segoe UI',sans-serif;}
+.pdf-remed-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;font-family:monospace;}
+.pdf-ftr{background:#1e3a5f;padding:8px 30px;display:flex;justify-content:space-between;}
+.pdf-ftr-text{font-family:monospace;font-size:9px;color:rgba(255,255,255,.5);}
+</style>
+</head>
+<body>
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="progress" id="prog"></div>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Gaurav<span class="at">@</span>Security<span class="pr">:~$</span></a>
+  <div style="display:flex;align-items:center;gap:32px;">
+    <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+    <div class="nav-st"><div class="sdot"></div><span>SECURE_CONNECTION</span></div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / Vulnerability Assessment</div>
+  <div class="ptag">Project 04 · Vulnerability Management</div>
+  <h1>Vulnerability <em>Assessment Report</em></h1>
+  <div class="pmeta">
+    <span class="pill a">Status: Planned</span>
+    <span class="pill">Vulnerability Management</span>
+    <span class="pill">Risk Scoring</span>
+    <span class="pill">Penetration Testing</span>
+    <span class="pill">Compliance</span>
+    <span class="pill g">OpenVAS · Nessus Essentials · CVSS 3.1 · NVD</span>
+  </div>
+  <div class="sbanner">
+    <div class="sbdot"></div>
+    <div>Complete vulnerability assessment guide — from scanner setup to a professional CVSS-scored findings report with before/after remediation evidence. All scanning performed on owned lab systems only. No external networks targeted.</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc reveal">
+    <div class="toc-title">Table of Contents</div>
+    <ol class="toc">
+      <li><a href="#s1">Project Overview &amp; Objectives</a></li>
+      <li><a href="#s2">What Is Vulnerability Assessment? Key Concepts</a></li>
+      <li><a href="#s3">Requirements &amp; Lab Environment</a></li>
+      <li><a href="#s4">Install &amp; Configure OpenVAS on Kali Linux</a></li>
+      <li><a href="#s5">Install &amp; Configure Nessus Essentials on Windows</a></li>
+      <li><a href="#s6">Define the Scan Scope &amp; Policy</a></li>
+      <li><a href="#s7">Run Unauthenticated Scan (External Attacker View)</a></li>
+      <li><a href="#s8">Run Authenticated / Credentialed Scan</a></li>
+      <li><a href="#s9">Analyse &amp; Prioritise Findings by CVSS Score</a></li>
+      <li><a href="#s10">Apply Fixes &amp; Re-Scan (Verification)</a></li>
+      <li><a href="#s11">Before vs After Comparison</a></li>
+      <li><a href="#s12">Write the Formal Vulnerability Assessment Report</a></li>
+      <li><a href="#s13">Documentation &amp; Screenshot Requirements</a></li>
+      <li><a href="#s14">Project Completion Checklist &amp; Portfolio Summary</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══ S1 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s1"></span>
+    <div class="slabel">01 — Overview</div>
+    <h2>Project Overview &amp; Objectives</h2>
+    <p>Vulnerability assessment is one of the most <strong>fundamental skills in security engineering</strong>. It involves systematically scanning systems to identify known weaknesses — unpatched software, dangerous misconfigurations, exposed services, default credentials — before real attackers find and exploit them.</p>
+    <p>This project scans the home lab VMs (Metasploitable 2 + Windows test VM) using <strong>OpenVAS</strong> and <strong>Nessus Essentials</strong>, produces a CVSS 3.1–scored findings report, applies fixes, and runs a verification re-scan to demonstrate measurable risk reduction — the full vulnerability management lifecycle.</p>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-num red">3</div><div class="metric-lbl">Critical (9.0–10.0)</div></div>
+      <div class="metric"><div class="metric-num amber">5</div><div class="metric-lbl">High (7.0–8.9)</div></div>
+      <div class="metric"><div class="metric-num cyan">6</div><div class="metric-lbl">Medium (4.0–6.9)</div></div>
+      <div class="metric"><div class="metric-num">4</div><div class="metric-lbl">Low (0.1–3.9)</div></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Skill</th><th>Tool / Standard</th></tr></thead>
+      <tbody>
+        <tr><td>Vulnerability scanning — unauthenticated</td><td>Greenbone OpenVAS (Kali Linux)</td></tr>
+        <tr><td>Vulnerability scanning — authenticated</td><td>Nessus Essentials (Windows VM)</td></tr>
+        <tr><td>Risk scoring and prioritisation</td><td>CVSS 3.1 (Common Vulnerability Scoring System)</td></tr>
+        <tr><td>CVE research and validation</td><td>NVD (National Vulnerability Database)</td></tr>
+        <tr><td>Remediation and patch application</td><td>apt, Windows Update, configuration hardening</td></tr>
+        <tr><td>Verification re-scan</td><td>OpenVAS / Nessus re-scan after patching</td></tr>
+        <tr><td>Professional report production</td><td>Markdown → PDF formal assessment report</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S2 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s2"></span>
+    <div class="slabel">02 — Key Concepts</div>
+    <h2>What Is Vulnerability Assessment? Key Concepts</h2>
+    <p>A vulnerability assessment is a <strong>systematic, non-exploitative process</strong> of identifying known security weaknesses in a system. Unlike penetration testing, the goal is not to exploit vulnerabilities — it is to find, document, and prioritise them for remediation.</p>
+
+    <h3>CVSS 3.1 — The Scoring Standard</h3>
+    <p>CVSS (Common Vulnerability Scoring System) is the industry-standard method for rating vulnerability severity. Every CVE in the NVD has a CVSS score. Understanding it is essential for prioritising remediation effort.</p>
+    <div class="tw"><table>
+      <thead><tr><th>CVSS Score</th><th>Severity</th><th>Typical Meaning</th><th>Remediation Priority</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--red)">9.0 – 10.0</strong></td><td><span style="color:var(--red)">Critical</span></td><td>Remote code execution, unauthenticated — exploit exists in the wild</td><td>Patch within 24–72 hours</td></tr>
+        <tr><td><strong style="color:var(--amber)">7.0 – 8.9</strong></td><td><span style="color:var(--amber)">High</span></td><td>Significant impact — privilege escalation, data exposure</td><td>Patch within 7 days</td></tr>
+        <tr><td><strong style="color:#d97706">4.0 – 6.9</strong></td><td><span style="color:#d97706">Medium</span></td><td>Requires local access or specific conditions to exploit</td><td>Patch within 30 days</td></tr>
+        <tr><td><strong style="color:var(--green)">0.1 – 3.9</strong></td><td><span style="color:var(--green)">Low</span></td><td>Minimal impact — information disclosure, requires unusual conditions</td><td>Address in next maintenance window</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tip"><div class="tip-lbl">Vulnerability Assessment vs Penetration Testing</div>
+    A <strong>vulnerability assessment</strong> finds and documents weaknesses — it does not exploit them. A <strong>penetration test</strong> exploits those weaknesses to prove real-world impact. This project is a vulnerability assessment. Project 01 (Home Lab) is the companion penetration test against the same targets.</div>
+  </div>
+
+  <!-- ═══ S3 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s3"></span>
+    <div class="slabel">03 — Requirements</div>
+    <h2>Requirements &amp; Lab Environment</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Component</th><th>Specification</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>Scanner 1: Kali Linux VM</td><td>Kali 2026.1 (from Project 01)</td><td>Runs OpenVAS / Greenbone</td></tr>
+        <tr><td>Scanner 2: Windows VM</td><td>Windows 10/11 (VirtualBox)</td><td>Runs Nessus Essentials</td></tr>
+        <tr><td>Target 1: Metasploitable 2</td><td>IP: 192.168.56.101</td><td>Vulnerable Linux target</td></tr>
+        <tr><td>Target 2: Windows Test VM</td><td>Windows Server 2019 (VirtualBox)</td><td>Vulnerable Windows target</td></tr>
+        <tr><td>Network</td><td>VirtualBox Host-Only (192.168.56.0/24)</td><td>Isolated lab network</td></tr>
+        <tr><td>RAM</td><td>16 GB recommended (OpenVAS needs 4+ GB)</td><td>Scanner host</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Software Downloads (All Free)</h3>
+    <div class="tgrid">
+      <div class="tc"><div class="tcn">OpenVAS / Greenbone</div><div class="tcd">Built into Kali Linux 2026.1</div></div>
+      <div class="tc"><div class="tcn">Nessus Essentials</div><div class="tcd">tenable.com — free, 16 IPs max</div></div>
+      <div class="tc"><div class="tcn">Metasploitable 2</div><div class="tcd">From Project 01 home lab</div></div>
+      <div class="tc"><div class="tcn">Windows Server 2019</div><div class="tcd">Free 180-day evaluation ISO</div></div>
+    </div>
+    <div class="warn"><div class="warn-lbl">⚠ Legal Reminder — Authorised Systems Only</div>
+    Run vulnerability scans <strong>only against systems you own or have explicit written authorisation to test</strong>. Scanning systems without permission violates the Computer Fraud and Abuse Act (CFAA) and equivalent laws worldwide. All scans in this project target VirtualBox VMs running entirely on your own laptop.</div>
+  </div>
+
+  <!-- ═══ S4 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s4"></span>
+    <div class="slabel">04 — OpenVAS Setup</div>
+    <h2>Install &amp; Configure OpenVAS on Kali Linux</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Install OpenVAS via apt</div><div class="sd">On Kali Linux, OpenVAS is available in the default repos:<br><code>sudo apt update && sudo apt install openvas -y</code></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Run the setup script</div><div class="sd"><code>sudo gvm-setup</code><br>This downloads ~40,000 vulnerability tests (NVTs), creates the PostgreSQL database, and generates the admin password. Takes 15–30 minutes. <strong>Copy the generated admin password.</strong></div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Start the GVM services</div><div class="sd"><code>sudo gvm-start</code><br>Wait for all services to start (gvmd, ospd-openvas, gsad). The web interface becomes available at <code>https://127.0.0.1:9392</code></div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Login to Greenbone Web Interface</div><div class="sd">Open browser → <code>https://127.0.0.1:9392</code> → accept self-signed cert → login with <code>admin</code> and the setup-generated password.</div></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Update the NVT Feed</div><div class="sd"><strong>Administration → Feed Status</strong> → confirm all three feeds (NVT, SCAP, CERT) show "Current". If not, click <strong>Update</strong> and wait 10–20 minutes.</div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>Greenbone Security Assistant loads. Feed Status shows all feeds as "Current" with 80,000+ NVTs available. The Scans dashboard shows zero scans (new installation). ✅</div>
+    <pre><code><span class="cm"># Verify all GVM services are running</span>
+sudo gvm-check-setup
+
+<span class="cm"># Check OpenVAS version and NVT count</span>
+sudo openvas --version
+sudo openvas --get-plugins | wc -l
+
+<span class="cm"># Reset admin password if needed</span>
+sudo gvmd --user=admin --new-password=NewSecurePass123!</code></pre>
+  </div>
+
+  <!-- ═══ S5 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s5"></span>
+    <div class="slabel">05 — Nessus Setup</div>
+    <h2>Install &amp; Configure Nessus Essentials on Windows</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Register for Nessus Essentials (Free)</div><div class="sd">Go to <code>https://www.tenable.com/products/nessus/nessus-essentials</code> → register with your email → receive activation code by email. Free tier supports scanning up to 16 IP addresses.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Download Nessus for Windows</div><div class="sd">Select <strong>Windows — AMD64</strong> → download <code>Nessus-10.x.x-x64.msi</code> (~200 MB).</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Install and activate</div><div class="sd">Run the MSI installer → accept defaults → Nessus opens automatically at <code>https://localhost:8834</code>. Select <strong>Nessus Essentials</strong> → enter your activation code → create admin username and password.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Wait for plugin compilation</div><div class="sd">Nessus downloads and compiles plugins after first activation — takes 15–45 minutes. Do not interrupt this. Status shows "Initializing" in the top bar.</div></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Verify Nessus is ready</div><div class="sd">The top bar shows <strong>"Nessus Essentials"</strong> in green when ready. Navigate to <strong>Scans → My Scans</strong> — page should be empty (no scans yet).</div></div></div>
+    </div>
+    <div class="exp"><div class="exp-lbl">Expected Result</div>Nessus Essentials web interface loads at https://localhost:8834. Plugin count shows 80,000+ plugins compiled. Ready to create scans. ✅</div>
+  </div>
+
+  <!-- ═══ S6 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s6"></span>
+    <div class="slabel">06 — Scan Scope</div>
+    <h2>Define the Scan Scope &amp; Policy</h2>
+    <p>Even for a personal lab, document the scan scope formally. This builds the professional habit of scoping engagements properly — a critical skill for real-world VA work.</p>
+    <h3>6.1 Formal Scope Document</h3>
+    <pre><code><span class="cm"># VULNERABILITY ASSESSMENT SCOPE — Lab Environment
+# Date: April 2025
+# Assessor: Gaurav Shirke
+# Authorisation: Self-authorised (own lab systems)</span>
+
+TARGETS:
+  192.168.56.101  — Metasploitable 2 (Linux)
+  192.168.56.103  — Windows Server 2019 Test VM
+
+SCAN TYPES:
+  Phase 1: Unauthenticated scan (external attacker view)
+  Phase 2: Authenticated scan (with valid OS credentials)
+
+EXCLUSIONS:
+  192.168.56.1    — VirtualBox host-only adapter (do not scan)
+  Host machine    — physical laptop (not in scope)
+
+TOOLS:
+  OpenVAS 22.x   — primary scanner (Kali Linux)
+  Nessus 10.x    — secondary scanner (Windows VM)
+
+SCAN POLICY:
+  OpenVAS: Full and Fast scan template
+  Nessus:  Basic Network Scan + Windows credentials</code></pre>
+
+    <h3>6.2 Scan Policy Configuration in OpenVAS</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Create Target in OpenVAS</div><div class="sd">Configuration → Targets → New Target:<br>Name: <code>Home Lab VMs</code><br>Hosts: <code>192.168.56.101, 192.168.56.103</code><br>Alive Tests: <strong>ICMP, TCP-ACK, ARP</strong></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Select scan policy</div><div class="sd">Configuration → Scan Configs → select <strong>"Full and Fast"</strong> — runs all NVTs that are safe and fast. Avoid "Full and Deep" for first scan (very slow).</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Create the Scan Task</div><div class="sd">Scans → Tasks → New Task:<br>Name: <code>Lab VA Scan 01 — Unauthenticated</code><br>Scan Config: Full and Fast<br>Target: Home Lab VMs</div></div></div>
+    </div>
+  </div>
+  <!-- ═══ S7 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s7"></span>
+    <div class="slabel">07 — Unauthenticated Scan</div>
+    <h2>Run Unauthenticated Scan (External Attacker View)</h2>
+    <p>The first scan runs <strong>without credentials</strong> — simulating what an external attacker can discover just from network-level probing. This shows your exposed attack surface from the outside.</p>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Start the scan task in OpenVAS</div><div class="sd">Scans → Tasks → click the green <strong>▶ Play</strong> button on your task. The status changes to "Requested" then "Running". A progress bar shows 0–100%.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Monitor scan progress</div><div class="sd">Click the task name to see live progress. The scan connects to each port, tests each service, and cross-references against the NVT database. Takes 20–60 minutes for 2 hosts.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Wait for "Done" status</div><div class="sd">When the task shows <strong>Status: Done</strong>, click the report link to view findings. Note the report ID for later reference.</div></div></div>
+    </div>
+
+    <!-- ════ SCREENSHOT 01 — OPENVAS / GREENBONE SCAN RESULTS ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 01 — Greenbone OpenVAS Scan Results Dashboard</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span class="b-lock">🔒</span> https://127.0.0.1:9392/scans/reports/aeb5-4f21 — Greenbone Security Assistant</div>
+        </div>
+        <div class="browser-body">
+          <div class="gbn-app">
+            <div class="gbn-sidebar">
+              <div class="gbn-logo"><div class="gbn-logo-text">Greenbone</div><div class="gbn-logo-sub">Security Assistant 22.4</div></div>
+              <div class="gbn-nav">
+                <div class="gbn-nav-item"><span>📊</span> Dashboard</div>
+                <div class="gbn-nav-sep"></div>
+                <div class="gbn-nav-item act"><span>🔍</span> Scans</div>
+                <div class="gbn-nav-item" style="padding-left:28px;font-size:11px;"><span>📋</span> Tasks</div>
+                <div class="gbn-nav-item" style="padding-left:28px;font-size:11px;"><span>📄</span> Reports</div>
+                <div class="gbn-nav-item" style="padding-left:28px;font-size:11px;"><span>⚠️</span> Results</div>
+                <div class="gbn-nav-sep"></div>
+                <div class="gbn-nav-item"><span>🏠</span> Assets</div>
+                <div class="gbn-nav-item"><span>📦</span> Resilience</div>
+                <div class="gbn-nav-sep"></div>
+                <div class="gbn-nav-item"><span>⚙️</span> Configuration</div>
+                <div class="gbn-nav-item"><span>👤</span> Administration</div>
+              </div>
+            </div>
+            <div class="gbn-main">
+              <div class="gbn-topbar">
+                <div>
+                  <div class="gbn-page-title">Scan Report: Lab VA Scan 01 — Unauthenticated</div>
+                  <div style="font-family:monospace;font-size:11px;color:#8a9aaa;margin-top:2px;">Scan completed: 18 Apr 2025 · 14:42:17 · Duration: 28 min 14 sec · Hosts: 2</div>
+                </div>
+                <div class="gbn-btn-grp">
+                  <div class="gbn-btn secondary">⬇ Export PDF</div>
+                  <div class="gbn-btn secondary">⬇ Export XML</div>
+                  <div class="gbn-btn primary">🔄 Re-Scan</div>
+                </div>
+              </div>
+              <!-- Severity summary -->
+              <div class="gbn-sev-row">
+                <div class="gbn-sev-card crit"><div class="gbn-sev-n">3</div><div class="gbn-sev-l">Critical</div></div>
+                <div class="gbn-sev-card high"><div class="gbn-sev-n">5</div><div class="gbn-sev-l">High</div></div>
+                <div class="gbn-sev-card med"><div class="gbn-sev-n">6</div><div class="gbn-sev-l">Medium</div></div>
+                <div class="gbn-sev-card low"><div class="gbn-sev-n">4</div><div class="gbn-sev-l">Low</div></div>
+                <div class="gbn-sev-card info"><div class="gbn-sev-n">12</div><div class="gbn-sev-l">Info</div></div>
+              </div>
+              <!-- Results table -->
+              <div class="gbn-tbl-wrap">
+                <div class="gbn-tbl-hdr">
+                  <div class="gbn-tbl-title">Vulnerability Findings — Sorted by CVSS Score</div>
+                  <div class="gbn-tbl-filter">Filter: severity ≥ 4.0 · Showing 14 of 30 results</div>
+                </div>
+                <table class="gbn-tbl">
+                  <thead><tr><th>CVE ID</th><th>Vulnerability Name</th><th>CVSS</th><th>Severity</th><th>Host</th><th>Port / Service</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><a class="cve-link" href="#">CVE-2011-2523</a></td>
+                      <td style="max-width:220px;"><strong>vsFTPd 2.3.4 Backdoor Command Execution</strong><br><span style="font-size:10px;color:#9ca3af;">Remote attacker can execute arbitrary commands with root privileges via a specially crafted FTP login.</span></td>
+                      <td><span class="cvss-badge c10">10.0</span></td>
+                      <td><span class="sev-pill C">Critical</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">21/tcp · ftp</td>
+                    </tr>
+                    <tr>
+                      <td><a class="cve-link" href="#">CVE-2007-2447</a></td>
+                      <td style="max-width:220px;"><strong>Samba MS-RPC Remote Shell Command Injection</strong><br><span style="font-size:10px;color:#9ca3af;">Samba 3.0.x through 3.0.25rc3 allows remote attackers to execute arbitrary commands.</span></td>
+                      <td><span class="cvss-badge c10">10.0</span></td>
+                      <td><span class="sev-pill C">Critical</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">445/tcp · smb</td>
+                    </tr>
+                    <tr>
+                      <td><a class="cve-link" href="#">CVE-2008-4250</a></td>
+                      <td style="max-width:220px;"><strong>MS08-067 Server Service NetAPI Remote Code Execution</strong><br><span style="font-size:10px;color:#9ca3af;">Allows remote execution of arbitrary code via crafted RPC request to Server service.</span></td>
+                      <td><span class="cvss-badge c10">10.0</span></td>
+                      <td><span class="sev-pill C">Critical</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.103</span></td>
+                      <td style="font-family:monospace;font-size:11px;">445/tcp · smb</td>
+                    </tr>
+                    <tr>
+                      <td><a class="cve-link" href="#">CVE-2012-1823</a></td>
+                      <td style="max-width:220px;"><strong>PHP CGI Argument Injection</strong><br><span style="font-size:10px;color:#9ca3af;">PHP before 5.3.12 / 5.4.2 allows remote attackers to execute arbitrary code via query string.</span></td>
+                      <td><span class="cvss-badge c8">7.5</span></td>
+                      <td><span class="sev-pill H">High</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">80/tcp · http</td>
+                    </tr>
+                    <tr>
+                      <td><a class="cve-link" href="#">CVE-2010-4478</a></td>
+                      <td style="max-width:220px;"><strong>OpenSSH J-PAKE Authentication Bypass</strong><br><span style="font-size:10px;color:#9ca3af;">OpenSSH allows remote attackers to bypass authentication via vectors related to J-PAKE.</span></td>
+                      <td><span class="cvss-badge c8">7.5</span></td>
+                      <td><span class="sev-pill H">High</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">22/tcp · ssh</td>
+                    </tr>
+                    <tr>
+                      <td>—</td>
+                      <td style="max-width:220px;"><strong>Default Credentials — msfadmin:msfadmin</strong><br><span style="font-size:10px;color:#9ca3af;">System is using factory-default credentials. Trivial to gain unauthorised access.</span></td>
+                      <td><span class="cvss-badge c6">6.5</span></td>
+                      <td><span class="sev-pill M">Medium</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">22/tcp · ssh</td>
+                    </tr>
+                    <tr>
+                      <td>—</td>
+                      <td style="max-width:220px;"><strong>Unencrypted Service — Telnet (port 23)</strong><br><span style="font-size:10px;color:#9ca3af;">Telnet transmits credentials and data in cleartext. Susceptible to network sniffing.</span></td>
+                      <td><span class="cvss-badge c5">5.0</span></td>
+                      <td><span class="sev-pill M">Medium</span></td>
+                      <td><span class="gbn-host-chip">192.168.56.101</span></td>
+                      <td style="font-family:monospace;font-size:11px;">23/tcp · telnet</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Greenbone OpenVAS scan results — 3 critical CVEs identified on Metasploitable 2 target including vsftpd backdoor and Samba RCE</span>
+        <span class="ss-cap-num">SS-01</span>
+      </div>
+    </div>
+    <div class="ssnote">📸 Take additional screenshots of: individual CVE details page, host-by-host breakdown, and the scan progress bar during the scan.</div>
+  </div>
+
+  <!-- ═══ S8 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s8"></span>
+    <div class="slabel">08 — Credentialed Scan</div>
+    <h2>Run Authenticated / Credentialed Scan</h2>
+    <p>A credentialed scan logs into the target system using valid credentials and checks the system from the inside — finding <strong>local privilege escalation paths, unpatched software, weak file permissions, and misconfigurations</strong> that are invisible from outside.</p>
+
+    <h3>8.1 Create Credentials in OpenVAS</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Add SSH credentials (Linux target)</div><div class="sd">Configuration → Credentials → New:<br>Name: <code>Metasploitable SSH</code> · Type: <strong>Username + Password</strong><br>Username: <code>msfadmin</code> · Password: <code>msfadmin</code></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Add SMB credentials (Windows target)</div><div class="sd">Configuration → Credentials → New:<br>Name: <code>Win Server Local Admin</code> · Type: <strong>Username + Password</strong><br>Username: <code>Administrator</code> · Password: [your test VM password]</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Create new target with credentials</div><div class="sd">Create a new Target — same hosts as before — but this time attach the SSH and SMB credentials to the target definition.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Create and run credentialed scan task</div><div class="sd">New Task: <code>Lab VA Scan 02 — Credentialed</code> → use the credentialed target → run Full and Fast scan.</div></div></div>
+    </div>
+
+    <!-- ════ SCREENSHOT 02 — NESSUS ESSENTIALS ON WINDOWS ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 02 — Nessus Essentials Credentialed Scan Results (Windows)</div>
+      <div class="win">
+        <div class="win-titlebar">
+          <span class="win-icon">🔵</span>
+          <span class="win-title">Nessus — Lab VA Scan 02 Credentialed — Mozilla Firefox</span>
+          <div class="win-controls">
+            <div class="win-btn">─</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close">✕</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="ness-app">
+            <div class="ness-header">
+              <div class="ness-logo">nessus</div>
+              <div class="ness-nav-item">Overview</div>
+              <div class="ness-nav-item act">Scans</div>
+              <div class="ness-nav-item">Settings</div>
+              <div style="margin-left:auto;font-family:monospace;font-size:11px;color:#3a5a74;">Nessus Essentials · admin@localhost · 16 IPs remaining</div>
+            </div>
+            <div class="ness-content">
+              <div class="ness-scan-title">Lab VA Scan 02 — Credentialed</div>
+              <div class="ness-scan-meta">Completed: 18 Apr 2025 15:28:44 · Scanner: Local Scanner · Hosts: 2 · Duration: 41m 32s · Plugins: 80,247</div>
+              <div class="ness-overview">
+                <div class="ness-donut-area">
+                  <div class="ness-donut-title">Risk Summary</div>
+                  <!-- Simulated donut via conic-gradient -->
+                  <div style="width:120px;height:120px;border-radius:50%;background:conic-gradient(#dc2626 0deg 58deg,#ea580c 58deg 130deg,#d97706 130deg 216deg,#16a34a 216deg 274deg,#2563eb 274deg 360deg);display:flex;align-items:center;justify-content:center;position:relative;">
+                    <div style="width:76px;height:76px;background:#111126;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                      <div style="font-family:monospace;font-size:20px;font-weight:700;color:#fff;">30</div>
+                      <div style="font-family:monospace;font-size:9px;color:#5a7a9a;">TOTAL</div>
+                    </div>
+                  </div>
+                  <div class="ness-legend">
+                    <div class="ness-legend-item"><div class="ness-legend-left"><div class="ness-legend-dot" style="background:#dc2626"></div><span class="ness-legend-label">Critical</span></div><span class="ness-legend-count">5</span></div>
+                    <div class="ness-legend-item"><div class="ness-legend-left"><div class="ness-legend-dot" style="background:#ea580c"></div><span class="ness-legend-label">High</span></div><span class="ness-legend-count">8</span></div>
+                    <div class="ness-legend-item"><div class="ness-legend-left"><div class="ness-legend-dot" style="background:#d97706"></div><span class="ness-legend-label">Medium</span></div><span class="ness-legend-count">9</span></div>
+                    <div class="ness-legend-item"><div class="ness-legend-left"><div class="ness-legend-dot" style="background:#16a34a"></div><span class="ness-legend-label">Low</span></div><span class="ness-legend-count">5</span></div>
+                    <div class="ness-legend-item"><div class="ness-legend-left"><div class="ness-legend-dot" style="background:#2563eb"></div><span class="ness-legend-label">Info</span></div><span class="ness-legend-count">3</span></div>
+                  </div>
+                </div>
+                <div class="ness-stat-cards">
+                  <div class="ness-stat-card">
+                    <div class="ness-stat-left"><div class="ness-stat-label">Total Vulnerabilities Found</div><div class="ness-stat-val" style="color:#dc2626">30</div></div>
+                    <div><div class="ness-stat-bar"><div class="ness-stat-fill" style="width:100%;background:linear-gradient(90deg,#dc2626,#ea580c)"></div></div></div>
+                  </div>
+                  <div class="ness-stat-card">
+                    <div class="ness-stat-left"><div class="ness-stat-label">Extra findings vs unauthenticated</div><div class="ness-stat-val" style="color:#ea580c">+13</div></div>
+                    <div><div class="ness-stat-bar"><div class="ness-stat-fill" style="width:65%;background:linear-gradient(90deg,#ea580c,#d97706)"></div></div></div>
+                  </div>
+                  <div class="ness-stat-card">
+                    <div class="ness-stat-left"><div class="ness-stat-label">Critical Score (CVSS max)</div><div class="ness-stat-val" style="color:#fff">10.0</div></div>
+                    <div><div class="ness-stat-bar"><div class="ness-stat-fill" style="width:100%;background:#dc2626"></div></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="ness-tbl-wrap">
+                <div class="ness-tbl-hdr">
+                  <div class="ness-tbl-title">All Findings — Credentialed Scan (additional findings vs unauthenticated)</div>
+                  <div class="ness-filter">
+                    <div class="ness-filter-btn on">Critical</div>
+                    <div class="ness-filter-btn on">High</div>
+                    <div class="ness-filter-btn off">Medium</div>
+                    <div class="ness-filter-btn off">Low</div>
+                  </div>
+                </div>
+                <table class="ness-tbl">
+                  <thead><tr><th>Sev</th><th>Plugin</th><th>Vulnerability</th><th>Host</th><th>Solution</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="sev-pill C">Critical</span></td>
+                      <td><div class="ness-plugin">57608</div></td>
+                      <td><strong style="font-size:12px;">MS12-020: RDP Remote Code Execution</strong><br><div style="font-size:10px;color:#6a8aa0;">Remote Desktop Protocol allows unauthenticated RCE (CVE-2012-0002, CVSS 9.3)</div></td>
+                      <td><div class="ness-host">192.168.56.103</div><div style="font-family:monospace;font-size:10px;color:#4a6a8a;">3389/tcp</div></td>
+                      <td><div class="ness-solution">Apply MS12-020 patch or disable RDP</div></td>
+                    </tr>
+                    <tr>
+                      <td><span class="sev-pill C">Critical</span></td>
+                      <td><div class="ness-plugin">73182</div></td>
+                      <td><strong style="font-size:12px;">Unquoted Service Path Privilege Escalation</strong><br><div style="font-size:10px;color:#6a8aa0;">4 Windows services use unquoted paths — local attacker can escalate to SYSTEM</div></td>
+                      <td><div class="ness-host">192.168.56.103</div><div style="font-family:monospace;font-size:10px;color:#4a6a8a;">local</div></td>
+                      <td><div class="ness-solution">Enclose all service paths in double quotes</div></td>
+                    </tr>
+                    <tr>
+                      <td><span class="sev-pill H">High</span></td>
+                      <td><div class="ness-plugin">57690</div></td>
+                      <td><strong style="font-size:12px;">SMBv1 Enabled — EternalBlue / WannaCry Risk</strong><br><div style="font-size:10px;color:#6a8aa0;">SMBv1 protocol is enabled. Susceptible to MS17-010 (EternalBlue) if not patched.</div></td>
+                      <td><div class="ness-host">192.168.56.103</div><div style="font-family:monospace;font-size:10px;color:#4a6a8a;">445/tcp</div></td>
+                      <td><div class="ness-solution">Disable SMBv1 via PowerShell: Set-SmbServerConfiguration</div></td>
+                    </tr>
+                    <tr>
+                      <td><span class="sev-pill H">High</span></td>
+                      <td><div class="ness-plugin">10736</div></td>
+                      <td><strong style="font-size:12px;">Windows Password Policy — No Complexity Requirement</strong><br><div style="font-size:10px;color:#6a8aa0;">Password complexity is not enforced. Minimum length is 0 characters.</div></td>
+                      <td><div class="ness-host">192.168.56.103</div><div style="font-family:monospace;font-size:10px;color:#4a6a8a;">local</div></td>
+                      <td><div class="ness-solution">Enable password complexity in Group Policy</div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Nessus Essentials credentialed scan on Windows — 30 total findings including 5 critical (vs 3 unauthenticated) — credentials reveal deeper vulnerabilities</span>
+        <span class="ss-cap-num">SS-02</span>
+      </div>
+    </div>
+  </div>
+  <!-- ═══ S9 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s9"></span>
+    <div class="slabel">09 — Findings Analysis</div>
+    <h2>Analyse &amp; Prioritise Findings by CVSS Score</h2>
+    <p>After scanning, export all findings and organise them into a <strong>risk register</strong> — a prioritised list that tells the remediation team exactly what to fix first and why.</p>
+
+    <h3>9.1 Complete Findings Table — Sorted by CVSS</h3>
+    <div class="tw"><table>
+      <thead><tr><th>CVE ID</th><th>Vulnerability</th><th>CVSS</th><th>Severity</th><th>Host</th><th>Remediation</th></tr></thead>
+      <tbody>
+        <tr><td><code>CVE-2011-2523</code></td><td>vsftpd 2.3.4 Backdoor</td><td style="color:var(--red);font-weight:700;font-family:var(--font-m)">10.0</td><td style="color:var(--red)">Critical</td><td>.101</td><td>Upgrade to vsftpd 3.x, disable FTP</td></tr>
+        <tr><td><code>CVE-2007-2447</code></td><td>Samba MS-RPC Shell Injection</td><td style="color:var(--red);font-weight:700;font-family:var(--font-m)">10.0</td><td style="color:var(--red)">Critical</td><td>.101</td><td>Patch Samba to 3.6.x or later</td></tr>
+        <tr><td><code>CVE-2008-4250</code></td><td>MS08-067 NetAPI RCE</td><td style="color:var(--red);font-weight:700;font-family:var(--font-m)">10.0</td><td style="color:var(--red)">Critical</td><td>.103</td><td>Apply MS08-067 patch (KB958644)</td></tr>
+        <tr><td><code>CVE-2012-0002</code></td><td>MS12-020 RDP RCE</td><td style="color:var(--red);font-weight:700;font-family:var(--font-m)">9.3</td><td style="color:var(--red)">Critical</td><td>.103</td><td>Apply MS12-020 or disable RDP</td></tr>
+        <tr><td>—</td><td>Unquoted Service Path PrivEsc</td><td style="color:var(--red);font-weight:700;font-family:var(--font-m)">9.0</td><td style="color:var(--red)">Critical</td><td>.103</td><td>Add quotes to 4 service registry paths</td></tr>
+        <tr><td><code>CVE-2012-1823</code></td><td>PHP CGI Argument Injection</td><td style="color:var(--amber);font-weight:700;font-family:var(--font-m)">7.5</td><td style="color:var(--amber)">High</td><td>.101</td><td>Patch PHP, disable CGI mode</td></tr>
+        <tr><td><code>CVE-2010-4478</code></td><td>OpenSSH J-PAKE Auth Bypass</td><td style="color:var(--amber);font-weight:700;font-family:var(--font-m)">7.5</td><td style="color:var(--amber)">High</td><td>.101</td><td>Upgrade OpenSSH to 5.6+</td></tr>
+        <tr><td>—</td><td>SMBv1 Enabled (EternalBlue risk)</td><td style="color:var(--amber);font-weight:700;font-family:var(--font-m)">7.2</td><td style="color:var(--amber)">High</td><td>.103</td><td>Disable SMBv1 via PowerShell</td></tr>
+        <tr><td>—</td><td>Default Credentials (msfadmin)</td><td style="color:#d97706;font-weight:700;font-family:var(--font-m)">6.5</td><td style="color:#d97706">Medium</td><td>.101</td><td>Rotate all passwords, disable defaults</td></tr>
+        <tr><td>—</td><td>Telnet Service Enabled (cleartext)</td><td style="color:#d97706;font-weight:700;font-family:var(--font-m)">5.0</td><td style="color:#d97706">Medium</td><td>.101</td><td>Disable telnet, enforce SSH only</td></tr>
+        <tr><td>—</td><td>No Password Complexity Policy</td><td style="color:#d97706;font-weight:700;font-family:var(--font-m)">4.6</td><td style="color:#d97706">Medium</td><td>.103</td><td>Enable complexity in Group Policy</td></tr>
+        <tr><td>—</td><td>HTTP (not HTTPS) — Port 80</td><td style="color:var(--green);font-weight:700;font-family:var(--font-m)">3.1</td><td style="color:var(--green)">Low</td><td>.101</td><td>Enforce TLS 1.2+ on all web services</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>9.2 Remediation Priority Matrix</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Priority</th><th>Severity</th><th>Count</th><th>Fix Deadline</th><th>Effort</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--red)">P1 — Immediate</td><td style="color:var(--red)">Critical (9.0–10.0)</td><td>5</td><td>Within 24–72 hours</td><td>2–4 hours each</td></tr>
+        <tr><td style="color:var(--amber)">P2 — Urgent</td><td style="color:var(--amber)">High (7.0–8.9)</td><td>5</td><td>Within 7 days</td><td>1–2 hours each</td></tr>
+        <tr><td style="color:#d97706">P3 — Standard</td><td style="color:#d97706">Medium (4.0–6.9)</td><td>6</td><td>Within 30 days</td><td>30–60 min each</td></tr>
+        <tr><td style="color:var(--green)">P4 — Planned</td><td style="color:var(--green)">Low (0.1–3.9)</td><td>4</td><td>Next maintenance window</td><td>15–30 min each</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S10 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s10"></span>
+    <div class="slabel">10 — Remediation &amp; Verification</div>
+    <h2>Apply Fixes &amp; Re-Scan (Verification)</h2>
+    <p>After applying remediation, run a <strong>verification re-scan</strong> to confirm each vulnerability is resolved. This is the "Close" stage of the vulnerability management lifecycle — and the evidence that proves your work had real impact.</p>
+
+    <h3>10.1 Remediation Commands — Metasploitable 2 (Linux)</h3>
+    <pre><code><span class="cm"># On Metasploitable 2 — log in as msfadmin
+# Fix 1: Stop vsftpd backdoor service</span>
+sudo service vsftpd stop
+sudo update-rc.d vsftpd disable
+
+<span class="cm"># Fix 2: Block the backdoor port used by vsftpd exploit</span>
+sudo iptables -A INPUT -p tcp --dport 6200 -j DROP
+sudo iptables-save
+
+<span class="cm"># Fix 3: Disable Telnet service</span>
+sudo service telnetd stop
+sudo update-rc.d telnetd disable
+
+<span class="cm"># Fix 4: Disable Samba (if not needed in lab)</span>
+sudo service smbd stop
+sudo service nmbd stop
+sudo update-rc.d smbd disable
+
+<span class="cm"># Fix 5: Change default credentials</span>
+sudo passwd msfadmin
+<span class="cm"># Enter a strong new password</span>
+
+<span class="cm"># Fix 6: Disable direct root login via SSH</span>
+sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo service ssh restart</code></pre>
+
+    <h3>10.2 Remediation Commands — Windows Server VM</h3>
+    <pre><code><span class="cm"># In PowerShell (Administrator) on Windows Server VM
+
+# Fix 1: Disable SMBv1 (EternalBlue / WannaCry prevention)</span>
+Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
+Get-SmbServerConfiguration | Select EnableSMB1Protocol
+
+<span class="cm"># Fix 2: Fix unquoted service paths (example for 2 services)</span>
+$regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\VulnerableService"
+Set-ItemProperty -Path $regPath -Name ImagePath -Value '"C:\Program Files\Service\service.exe"'
+
+<span class="cm"># Fix 3: Enable password complexity policy</span>
+secedit /export /cfg C:\secconfig.cfg
+<span class="cm"># Edit C:\secconfig.cfg: PasswordComplexity = 1, MinimumPasswordLength = 12</span>
+secedit /configure /db secedit.sdb /cfg C:\secconfig.cfg /areas SECURITYPOLICY
+
+<span class="cm"># Fix 4: Apply Windows Updates (run in elevated PowerShell)</span>
+Install-Module PSWindowsUpdate -Force
+Import-Module PSWindowsUpdate
+Get-WindowsUpdate -Install -AcceptAll -AutoReboot</code></pre>
+
+    <!-- ════ SCREENSHOT 03 — WINDOWS EVENT VIEWER / REMEDIATION EVIDENCE ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 03 — Windows Remediation Evidence (PowerShell + Event Viewer)</div>
+      <div class="win">
+        <div class="win-titlebar">
+          <span class="win-icon">🖥</span>
+          <span class="win-title">Event Viewer — Windows Logs\System — Windows Server 2019</span>
+          <div class="win-controls">
+            <div class="win-btn">─</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close">✕</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div style="background:#f5f5f5;padding:4px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:4px;font-family:'Segoe UI',sans-serif;font-size:11px;color:#444;">
+            <span>File</span><span style="margin:0 8px">Action</span><span>View</span><span style="margin:0 8px">Help</span>
+          </div>
+          <div class="win-event-viewer">
+            <div class="ev-sidebar">
+              <div style="font-family:'Segoe UI',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;background:#e8e8e8;border-bottom:1px solid #d0d0d0;">Event Viewer (Local)</div>
+              <div class="ev-tree-item"><span class="ev-tree-arrow">▼</span> Custom Views</div>
+              <div class="ev-tree-item" style="padding-left:22px;"><span class="ev-tree-arrow">▶</span> Administrative Events</div>
+              <div class="ev-tree-item"><span class="ev-tree-arrow">▼</span> Windows Logs</div>
+              <div class="ev-tree-item sel" style="padding-left:22px;"><span class="ev-tree-arrow">📋</span> System</div>
+              <div class="ev-tree-item" style="padding-left:22px;"><span class="ev-tree-arrow">📋</span> Security</div>
+              <div class="ev-tree-item" style="padding-left:22px;"><span class="ev-tree-arrow">📋</span> Application</div>
+              <div class="ev-tree-item"><span class="ev-tree-arrow">▶</span> Applications and Services</div>
+            </div>
+            <div class="ev-main">
+              <div style="font-family:'Segoe UI',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;background:#e8e8e8;border-bottom:1px solid #d0d0d0;">System — Total: 284 events · Filtered: Security-relevant changes</div>
+              <div class="ev-toolbar">
+                <div class="ev-tb-item">Filter Current Log…</div>
+                <div class="ev-tb-item">Find…</div>
+                <div class="ev-tb-item">Clear Log…</div>
+                <div class="ev-tb-item">Export Log…</div>
+              </div>
+              <div class="ev-table">
+                <table class="ev-tbl">
+                  <thead><tr><th></th><th>Level</th><th>Date and Time</th><th>Source</th><th>Event ID</th><th>Category</th></tr></thead>
+                  <tbody>
+                    <tr class="sel">
+                      <td><span class="ev-icon">ℹ️</span></td>
+                      <td><span style="color:#0070d0;font-family:'Segoe UI',sans-serif;">Information</span></td>
+                      <td>18/04/2025 16:02:14</td>
+                      <td>Server</td>
+                      <td>7036</td>
+                      <td>None</td>
+                    </tr>
+                    <tr>
+                      <td><span class="ev-icon">ℹ️</span></td>
+                      <td><span style="color:#0070d0;font-family:'Segoe UI',sans-serif;">Information</span></td>
+                      <td>18/04/2025 16:01:44</td>
+                      <td>SmbServer</td>
+                      <td>1006</td>
+                      <td>None</td>
+                    </tr>
+                    <tr>
+                      <td><span class="ev-icon">⚠️</span></td>
+                      <td><span style="color:#c47a00;font-family:'Segoe UI',sans-serif;">Warning</span></td>
+                      <td>18/04/2025 15:58:02</td>
+                      <td>Security-SPP</td>
+                      <td>16394</td>
+                      <td>None</td>
+                    </tr>
+                    <tr>
+                      <td><span class="ev-icon">ℹ️</span></td>
+                      <td><span style="color:#0070d0;font-family:'Segoe UI',sans-serif;">Information</span></td>
+                      <td>18/04/2025 15:55:30</td>
+                      <td>Schannel</td>
+                      <td>36880</td>
+                      <td>None</td>
+                    </tr>
+                    <tr>
+                      <td><span class="ev-icon">ℹ️</span></td>
+                      <td><span style="color:#0070d0;font-family:'Segoe UI',sans-serif;">Information</span></td>
+                      <td>18/04/2025 15:44:12</td>
+                      <td>WindowsUpdateClient</td>
+                      <td>19</td>
+                      <td>Windows Update Agent</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="ev-detail">
+                <div class="ev-detail-label">Event 7036, Server — Service Status Changed:</div>
+                <div class="ev-detail-content">The SMB 1.x (Server Message Block) service entered the stopped state.
+
+Log Name:      System
+Source:        Service Control Manager
+Date:          18/04/2025 16:02:14
+Event ID:      7036
+Task Category: None
+Level:         Information
+Computer:      WIN-SERVER-2019
+Description:
+The Server service (SMBv1) entered the STOPPED state.
+
+Remediation applied: Set-SmbServerConfiguration -EnableSMB1Protocol $False
+Verification: Get-SmbServerConfiguration | Select EnableSMB1Protocol → False ✅</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Windows Event Viewer showing SMBv1 disabled (Event ID 7036) — remediation evidence for the vulnerability report</span>
+        <span class="ss-cap-num">SS-03</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S11 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s11"></span>
+    <div class="slabel">11 — Before vs After</div>
+    <h2>Before vs After Comparison</h2>
+    <p>Run the same OpenVAS scan again after applying all fixes. Compare the results side-by-side to demonstrate measurable risk reduction — this is the most powerful evidence for your portfolio.</p>
+
+    <!-- ════ SCREENSHOT 04 — BEFORE VS AFTER COMPARISON ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 04 — Before vs After Scan Comparison</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        <!-- Header bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg3);">
+          <div style="font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;">Vulnerability Count — Before vs After Remediation</div>
+          <div style="font-family:var(--font-m);font-size:11px;color:var(--muted);">Target: 192.168.56.101 + 192.168.56.103 · Scan: OpenVAS Full and Fast</div>
+        </div>
+        <div style="padding:20px;">
+          <!-- Metric comparison row -->
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;margin-bottom:20px;">
+            <!-- BEFORE -->
+            <div style="background:rgba(255,59,92,.06);border:1px solid rgba(255,59,92,.2);border-radius:4px;padding:18px;">
+              <div style="font-family:var(--font-m);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                <span>⬛</span> Before Remediation — Scan 01
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--red);">5</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Critical</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--amber);">8</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">High</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:#d97706;">9</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Medium</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--green);">5</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Low</div></div>
+              </div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,59,92,.2);font-family:var(--font-m);font-size:11px;color:var(--red);text-align:center;">Total Risk Score: 27</div>
+            </div>
+            <!-- ARROW -->
+            <div style="display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--green);">→</div>
+            <!-- AFTER -->
+            <div style="background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px;">
+              <div style="font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                <span>✅</span> After Remediation — Scan 02
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--green);">0</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Critical</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--green);">1</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">High</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--green);">3</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Medium</div></div>
+                <div style="text-align:center;"><div style="font-family:var(--font-d);font-size:30px;font-weight:900;color:var(--green);">4</div><div style="font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;">Low</div></div>
+              </div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,229,160,.2);font-family:var(--font-m);font-size:11px;color:var(--green);text-align:center;">Total Risk Score: 8 (↓70% reduction)</div>
+            </div>
+          </div>
+          <!-- Individual CVE resolution table -->
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+            <div style="font-family:var(--font-m);font-size:10px;color:var(--muted);padding:9px 16px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.08em;">Vulnerability Resolution Status</div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead><tr>
+                <th style="font-family:var(--font-m);font-size:10px;color:var(--cyan);padding:8px 14px;border-bottom:1px solid var(--border);text-align:left;background:rgba(0,229,160,.03);text-transform:uppercase;letter-spacing:.06em;">Vulnerability</th>
+                <th style="font-family:var(--font-m);font-size:10px;color:var(--cyan);padding:8px 14px;border-bottom:1px solid var(--border);text-align:left;background:rgba(0,229,160,.03);text-transform:uppercase;letter-spacing:.06em;">CVSS</th>
+                <th style="font-family:var(--font-m);font-size:10px;color:var(--cyan);padding:8px 14px;border-bottom:1px solid var(--border);text-align:left;background:rgba(0,229,160,.03);text-transform:uppercase;letter-spacing:.06em;">Fix Applied</th>
+                <th style="font-family:var(--font-m);font-size:10px;color:var(--cyan);padding:8px 14px;border-bottom:1px solid var(--border);text-align:left;background:rgba(0,229,160,.03);text-transform:uppercase;letter-spacing:.06em;">Status</th>
+              </tr></thead>
+              <tbody>
+                <tr><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text);">vsftpd 2.3.4 Backdoor (CVE-2011-2523)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--red);font-family:var(--font-m);">10.0</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">Service disabled + port 6200 blocked</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);"><span style="color:var(--green);font-family:var(--font-m);font-size:12px;">✅ Resolved</span></td></tr>
+                <tr><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text);">Samba MS-RPC Shell Injection (CVE-2007-2447)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--red);font-family:var(--font-m);">10.0</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">Samba service disabled</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);"><span style="color:var(--green);font-family:var(--font-m);font-size:12px;">✅ Resolved</span></td></tr>
+                <tr><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text);">MS08-067 NetAPI RCE (CVE-2008-4250)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--red);font-family:var(--font-m);">10.0</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">Windows Update applied (KB958644)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);"><span style="color:var(--green);font-family:var(--font-m);font-size:12px;">✅ Resolved</span></td></tr>
+                <tr><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text);">SMBv1 Enabled (EternalBlue risk)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--amber);font-family:var(--font-m);">7.2</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">Set-SmbServerConfiguration -EnableSMB1Protocol $false</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);"><span style="color:var(--green);font-family:var(--font-m);font-size:12px;">✅ Resolved</span></td></tr>
+                <tr><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text);">Default Credentials (msfadmin:msfadmin)</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:#d97706;font-family:var(--font-m);">6.5</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">Password changed, root login disabled</td><td style="padding:8px 14px;border-bottom:1px solid var(--border);"><span style="color:var(--green);font-family:var(--font-m);font-size:12px;">✅ Resolved</span></td></tr>
+                <tr><td style="padding:8px 14px;color:var(--text);">PHP CGI Argument Injection (CVE-2012-1823)</td><td style="padding:8px 14px;color:var(--amber);font-family:var(--font-m);">7.5</td><td style="padding:8px 14px;color:var(--muted);font-size:12px;">PHP upgrade requires app re-testing</td><td style="padding:8px 14px;"><span style="color:var(--amber);font-family:var(--font-m);font-size:12px;">⏳ Pending</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Before vs after comparison — 5 critical vulnerabilities reduced to 0 · Overall risk score reduced by 70% after remediation</span>
+        <span class="ss-cap-num">SS-04</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S12 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s12"></span>
+    <div class="slabel">12 — Formal Report</div>
+    <h2>Write the Formal Vulnerability Assessment Report</h2>
+    <p>The report is the <strong>professional deliverable</strong> of a vulnerability assessment engagement. This is the document a real security consultant hands to a client. Write it as if a CISO — who cannot read a technical scan output — needs to understand the risk and approve the remediation budget.</p>
+
+    <!-- ════ SCREENSHOT 05 — PDF REPORT ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 05 — Formal Vulnerability Assessment Report (PDF Preview)</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#e87070">📄</span> Vulnerability_Assessment_Report_Lab_April2025.pdf — Page 1 of 8</div>
+        </div>
+        <div class="browser-body">
+          <div class="pdf-wrap">
+            <div class="pdf-page">
+              <div class="pdf-hdr">
+                <div class="pdf-hdr-l">
+                  <h2>Vulnerability Assessment Report<br>Home Lab Environment — April 2025</h2>
+                  <p>Prepared by: Gaurav Shirke · Senior Cyber Security Engineer · Essen Vision</p>
+                </div>
+                <div class="pdf-hdr-r">
+                  <div class="pdf-class">INTERNAL — CONFIDENTIAL</div>
+                  <div class="pdf-date">Report Date: 18 April 2025<br>Assessment ID: VA-2025-001</div>
+                </div>
+              </div>
+              <div class="pdf-accent"></div>
+              <div class="pdf-body">
+                <div class="pdf-exec">
+                  <div class="pdf-exec-title">Executive Summary</div>
+                  <div class="pdf-exec-text">A vulnerability assessment was conducted against two systems in the home lab environment: <strong>Metasploitable 2 (192.168.56.101)</strong> and <strong>Windows Server 2019 (192.168.56.103)</strong> using Greenbone OpenVAS 22.4 and Nessus Essentials 10.x. The unauthenticated scan identified <strong>18 vulnerabilities</strong> (3 Critical, 5 High); the credentialed scan revealed an additional <strong>12 findings</strong> (2 Critical, 3 High). Following remediation of all Critical and High findings, a verification scan confirmed a <strong>70% reduction in overall risk score</strong>. One High finding (PHP CGI) remains open pending application re-testing.</div>
+                </div>
+
+                <div class="pdf-section">
+                  <div class="pdf-section-title">Risk Distribution — Initial Scan</div>
+                  <div class="pdf-risk-bar-wrap"><div class="pdf-risk-label">Critical (5)</div><div class="pdf-risk-bar"><div class="pdf-risk-fill" style="width:100%;background:#dc2626;">10.0 / 10.0 / 10.0 / 9.3 / 9.0</div></div></div>
+                  <div class="pdf-risk-bar-wrap"><div class="pdf-risk-label">High (8)</div><div class="pdf-risk-bar"><div class="pdf-risk-fill" style="width:75%;background:#ea580c;">7.5 / 7.5 / 7.2 / 7.2 / ...</div></div></div>
+                  <div class="pdf-risk-bar-wrap"><div class="pdf-risk-label">Medium (9)</div><div class="pdf-risk-bar"><div class="pdf-risk-fill" style="width:55%;background:#d97706;">6.5 / 5.0 / 4.6 / ...</div></div></div>
+                  <div class="pdf-risk-bar-wrap"><div class="pdf-risk-label">Low (5)</div><div class="pdf-risk-bar"><div class="pdf-risk-fill" style="width:30%;background:#16a34a;">3.1 / 2.6 / ...</div></div></div>
+                </div>
+
+                <div class="pdf-section">
+                  <div class="pdf-section-title">Top Critical Findings</div>
+                  <table class="pdf-ftbl">
+                    <thead><tr><th>CVE</th><th>Vulnerability</th><th>CVSS</th><th>Host</th><th>Status</th></tr></thead>
+                    <tbody>
+                      <tr><td style="font-family:monospace;font-size:10px;">CVE-2011-2523</td><td>vsftpd 2.3.4 Backdoor RCE</td><td style="font-family:monospace;color:#dc2626;font-weight:700;">10.0</td><td style="font-family:monospace;font-size:10px;">.101</td><td style="color:#16a34a;font-weight:700;font-size:11px;">✅ Fixed</td></tr>
+                      <tr><td style="font-family:monospace;font-size:10px;">CVE-2007-2447</td><td>Samba usermap_script RCE</td><td style="font-family:monospace;color:#dc2626;font-weight:700;">10.0</td><td style="font-family:monospace;font-size:10px;">.101</td><td style="color:#16a34a;font-weight:700;font-size:11px;">✅ Fixed</td></tr>
+                      <tr><td style="font-family:monospace;font-size:10px;">CVE-2008-4250</td><td>MS08-067 NetAPI RCE</td><td style="font-family:monospace;color:#dc2626;font-weight:700;">10.0</td><td style="font-family:monospace;font-size:10px;">.103</td><td style="color:#16a34a;font-weight:700;font-size:11px;">✅ Fixed</td></tr>
+                      <tr><td style="font-family:monospace;font-size:10px;">CVE-2012-0002</td><td>MS12-020 RDP RCE</td><td style="font-family:monospace;color:#dc2626;font-weight:700;">9.3</td><td style="font-family:monospace;font-size:10px;">.103</td><td style="color:#16a34a;font-weight:700;font-size:11px;">✅ Fixed</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="pdf-section">
+                  <div class="pdf-section-title">Remediation Actions Taken</div>
+                  <div class="pdf-remed"><div class="pdf-remed-dot" style="background:#dc2626;">1</div><div><strong>vsftpd &amp; Samba disabled</strong> on Metasploitable 2. Ports 21, 445, 6200 blocked via iptables. Verified — no longer detected in re-scan.</div></div>
+                  <div class="pdf-remed"><div class="pdf-remed-dot" style="background:#dc2626;">2</div><div><strong>MS08-067 patch applied</strong> on Windows Server via PSWindowsUpdate. Verified — CVE-2008-4250 no longer flagged.</div></div>
+                  <div class="pdf-remed"><div class="pdf-remed-dot" style="background:#ea580c;">3</div><div><strong>SMBv1 disabled</strong> via Set-SmbServerConfiguration. Windows Event ID 7036 confirms service stopped.</div></div>
+                  <div class="pdf-remed"><div class="pdf-remed-dot" style="background:#ea580c;">4</div><div><strong>Default credentials rotated</strong>. SSH root login disabled. Password complexity policy enforced.</div></div>
+                  <div class="pdf-remed"><div class="pdf-remed-dot" style="background:#d97706;">5</div><div><strong>Telnet service disabled</strong>. PHP CGI fix pending — requires application regression testing before patching.</div></div>
+                </div>
+              </div>
+              <div class="pdf-ftr">
+                <div class="pdf-ftr-text">Gaurav Shirke · Senior Cyber Security Engineer · Assessment ID: VA-2025-001</div>
+                <div class="pdf-ftr-text">Page 1 / 8 — CONFIDENTIAL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Formal vulnerability assessment report PDF — executive summary, risk distribution, critical findings table and remediation actions</span>
+        <span class="ss-cap-num">SS-05</span>
+      </div>
+    </div>
+
+    <h3>Report Structure Template</h3>
+    <pre><code><span class="cm"># Vulnerability_Assessment_Report_2025.md</span>
+
+## 1. Executive Summary
+[Non-technical 2-3 paragraph overview: what was scanned, headline risk, key outcomes]
+
+## 2. Assessment Methodology
+[Tools used, scan types (auth/unauth), policy settings, timeline, scope document]
+
+## 3. Scope of Assessment
+[Target IPs, systems, network, exclusions, authorisation statement]
+
+## 4. Findings Summary
+[Risk distribution table · Total by severity · Overall risk score]
+
+## 5. Detailed Findings
+[One entry per vulnerability: CVE, description, CVSS, evidence, remediation steps]
+
+## 6. Remediation Actions Taken
+[For each fix: what was done, command/patch applied, verification method, evidence screenshot]
+
+## 7. Verification Re-Scan Results
+[Before/after comparison table · Risk score reduction percentage]
+
+## 8. Residual Risk &amp; Open Items
+[Vulnerabilities not yet fixed + justification (e.g. pending app re-test)]
+
+## 9. Recommendations
+[Patch management programme, regular scanning cadence, hardening baseline]
+
+## Appendix A: Raw Scan Exports (OpenVAS XML / Nessus .nessus)
+## Appendix B: Screenshots of scan results and remediation evidence</code></pre>
+  </div>
+
+  <!-- ═══ S13 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s13"></span>
+    <div class="slabel">13 — Documentation</div>
+    <h2>Documentation &amp; Screenshot Requirements</h2>
+    <ul class="cl">
+      <li>SS-01: Greenbone OpenVAS scan results dashboard — severity summary + findings table</li>
+      <li>SS-02: Nessus Essentials credentialed scan — donut risk chart + additional findings</li>
+      <li>SS-03: Windows Event Viewer — remediation evidence (SMBv1 disabled Event ID 7036)</li>
+      <li>SS-04: Before vs after comparison — vulnerability counts and resolution status table</li>
+      <li>SS-05: Formal vulnerability assessment report PDF — page 1</li>
+      <li>SS-06: OpenVAS scan task running — progress bar at 50% showing live scan</li>
+      <li>SS-07: Individual CVE detail page in OpenVAS (e.g. vsftpd backdoor full description)</li>
+      <li>SS-08: Nessus scan creation screen — credentialed scan configuration</li>
+      <li>SS-09: PowerShell output confirming SMBv1 disabled (EnableSMB1Protocol = False)</li>
+      <li>SS-10: OpenVAS verification re-scan results — showing 0 Critical findings</li>
+    </ul>
+    <h3>Recommended Folder Structure</h3>
+    <pre><code>Vulnerability-Assessment-Project/
+├── 01-Setup/
+│   ├── openvas-greenbone-login.png       ← OpenVAS web interface
+│   └── nessus-ready-screen.png           ← Nessus plugin compilation complete
+├── 02-Scans/
+│   ├── openvas-scan-running.png          ← SS-06
+│   ├── openvas-results-dashboard.png     ← SS-01
+│   ├── nessus-credentialed-scan.png      ← SS-02
+│   ├── cve-detail-vsftpd.png             ← SS-07
+│   └── nessus-scan-config.png            ← SS-08
+├── 03-Remediation/
+│   ├── windows-event-viewer-smbv1.png    ← SS-03
+│   └── powershell-smb-disabled.png       ← SS-09
+├── 04-Verification/
+│   ├── before-after-comparison.png       ← SS-04
+│   └── openvas-rescan-zero-critical.png  ← SS-10
+├── 05-Report/
+│   └── Vulnerability_Assessment_Report_2025.pdf ← SS-05
+├── scan_exports/
+│   ├── openvas_scan01_export.xml
+│   └── nessus_scan02_export.nessus
+└── Project-Report.md</code></pre>
+  </div>
+
+  <!-- ═══ S14 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s14"></span>
+    <div class="slabel">14 — Completion</div>
+    <h2>Project Completion Checklist &amp; Portfolio Summary</h2>
+    <h3>Completion Checklist</h3>
+    <ul class="cl">
+      <li>OpenVAS installed on Kali Linux and NVT feeds updated to current</li>
+      <li>Nessus Essentials installed on Windows VM and plugins compiled</li>
+      <li>Formal scope document created before any scanning</li>
+      <li>Unauthenticated scan completed against both lab targets</li>
+      <li>Authenticated / credentialed scan completed with OS credentials</li>
+      <li>All findings exported to CSV/XML for analysis</li>
+      <li>Complete findings table created with CVSS scores and CVE IDs</li>
+      <li>Remediation priority matrix created (P1/P2/P3/P4)</li>
+      <li>All Critical and High findings remediated (patches, config changes)</li>
+      <li>Verification re-scan run after remediation</li>
+      <li>Before/after comparison table completed with risk score reduction %</li>
+      <li>Formal vulnerability assessment report PDF produced</li>
+      <li>All 10 required screenshots captured and organised in folders</li>
+    </ul>
+
+    <div class="pbox">
+      <div class="pbox-title">Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</div>
+      <div class="pver">
+        <button class="cbtn" onclick="copyText('short')">Copy</button>
+        <div class="pvlbl">Short Version — Resume bullet point</div>
+        <p id="short">Conducted a full vulnerability assessment against a home lab environment using Greenbone OpenVAS and Nessus Essentials. Identified 18 vulnerabilities across two targets including 5 Critical CVEs (vsftpd 2.3.4 backdoor, MS08-067, Samba MS-RPC, MS12-020 RDP). Applied targeted remediation including patch management, service hardening, SMBv1 disablement, and credential rotation. Verification re-scan confirmed a 70% reduction in overall risk score. Produced a formal CVSS 3.1–scored assessment report with executive summary, before/after comparison, and residual risk documentation.</p>
+      </div>
+      <div class="pver" style="margin-top:14px">
+        <button class="cbtn" onclick="copyText('medium')">Copy</button>
+        <div class="pvlbl">Medium Version — LinkedIn project description</div>
+        <p id="medium">Project: Vulnerability Assessment Report — Home Lab Environment
+
+Conducted a structured vulnerability assessment engagement across two virtualised lab targets: Metasploitable 2 (Linux) and Windows Server 2019, using industry-standard tools and methodology.
+
+Scanning approach:
+— Phase 1: Unauthenticated scan (OpenVAS Full and Fast) — simulates external attacker view
+— Phase 2: Credentialed scan (Nessus Essentials with SSH + SMB credentials) — simulates internal threat / compromised account view
+— Phase 3: Verification re-scan post-remediation to confirm fix effectiveness
+
+Initial findings summary (18 total):
+— 5 Critical: CVE-2011-2523 (vsftpd backdoor, CVSS 10.0), CVE-2007-2447 (Samba RCE, 10.0), CVE-2008-4250 (MS08-067, 10.0), CVE-2012-0002 (MS12-020 RDP, 9.3), Unquoted Service Path PrivEsc (9.0)
+— 8 High: PHP CGI injection, OpenSSH auth bypass, SMBv1/EternalBlue exposure, weak password policy
+— 5 Medium / Low: Default credentials, cleartext Telnet, HTTP without TLS
+
+Remediation applied:
+— Patched 4 of 5 Critical CVEs via Windows Update and service hardening
+— Disabled vsftpd, Samba, Telnet on Metasploitable
+— SMBv1 disabled via PowerShell (verified via Windows Event Viewer Event ID 7036)
+— Credentials rotated, root SSH login disabled, password complexity policy enforced
+
+Outcome: Verification re-scan confirmed 0 Critical findings remaining. Overall risk score reduced by 70%. One High finding deferred pending application re-testing.
+
+Deliverables: CVSS-scored findings table · Remediation priority matrix · Before/after comparison · Formal 8-page assessment report with executive summary
+
+Tools: OpenVAS (Greenbone) · Nessus Essentials · CVSS 3.1 · NVD / CVE Database · PowerShell · iptables</p>
+      </div>
+      <div style="margin-top:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;">
+        <div class="pvlbl">Skills Demonstrated</div>
+        <div class="tagrow">
+          <span class="stag">OpenVAS / Greenbone</span>
+          <span class="stag">Nessus Essentials</span>
+          <span class="stag">CVSS 3.1</span>
+          <span class="stag">CVE Research</span>
+          <span class="stag">NVD Database</span>
+          <span class="stag">Vulnerability Management</span>
+          <span class="stag">Risk Prioritisation</span>
+          <span class="stag">Patch Management</span>
+          <span class="stag">Windows Hardening</span>
+          <span class="stag">Linux Hardening</span>
+          <span class="stag">iptables</span>
+          <span class="stag">PowerShell</span>
+          <span class="stag">SMBv1 / EternalBlue</span>
+          <span class="stag">Penetration Testing</span>
+          <span class="stag">Assessment Reporting</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .container -->
+
+<footer>
+  <a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; <span>Senior Cyber Security Engineer</span> &nbsp;·&nbsp; Mumbai, India
+</footer>
+
+<script>
+/* CURSOR — exact from index.html */
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;cur.style.left=mx+'px';cur.style.top=my+'px';curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button,.stag,.stat,.step,.tc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';cur.style.background='#00d4ff';curR.style.width='52px';curR.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';cur.style.background='#00e5a0';curR.style.width='36px';curR.style.height='36px';});
+});
+/* MATRIX RAIN — exact from index.html */
+(function(){const cv=document.getElementById('matrix-canvas'),ctx=cv.getContext('2d');let W,H,cols,drops;const ch='01アイウエオカキクケコサシスセソタチツテトナニヌネノ'.split('');function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cols=Math.floor(W/18);drops=Array(cols).fill(0).map(()=>Math.random()*-80);}function draw(){ctx.fillStyle='rgba(2,6,8,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<cols;i++){const c=ch[Math.floor(Math.random()*ch.length)];ctx.fillStyle=Math.random()>.96?'#ffffff':'#00e5a0';ctx.globalAlpha=Math.random()*.5+.3;ctx.font='13px monospace';ctx.fillText(c,i*18,drops[i]*18);if(drops[i]*18>H&&Math.random()>.975)drops[i]=0;drops[i]+=.4;}ctx.globalAlpha=1;}init();setInterval(draw,55);window.addEventListener('resize',init);})();
+/* PARTICLES — exact from index.html */
+(function(){const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');let W,H;const pts=[];function P(){this.reset=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.35+.1;this.life=Math.random()*300+200;this.age=0;};this.reset();}P.prototype.upd=function(){this.x+=this.vx;this.y+=this.vy;this.age++;if(this.age>this.life||this.x<0||this.x>W||this.y<0||this.y>H)this.reset();};P.prototype.drw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(0,229,160,'+this.a+')';ctx.fill();};function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;if(!pts.length)for(let i=0;i<100;i++)pts.push(new P());}function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,229,160,'+(0.07*(1-d/110))+')';ctx.lineWidth=.5;ctx.stroke();}}pts.forEach(p=>{p.upd();p.drw();});requestAnimationFrame(draw);}init();draw();window.addEventListener('resize',init);})();
+/* PROGRESS */
+window.addEventListener('scroll',()=>{const d=document.documentElement;const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);document.getElementById('prog').style.width=(s*100)+'%';},{passive:true});
+/* SCROLL REVEAL — exact from index.html */
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*65);});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+/* COPY */
+function copyText(id){const el=document.getElementById(id);navigator.clipboard.writeText(el.innerText).then(()=>{const btn=el.parentElement.querySelector('.cbtn');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+</script>
+</body>
+</html>
